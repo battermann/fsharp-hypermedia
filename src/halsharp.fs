@@ -19,7 +19,7 @@ module Types =
     type Resource = {
         links: Map<string, Link>
         embedded: Embedded
-        properties: Map<string, Object>
+        properties: Map<string, Json>
     }
     and Embedded = Map<string, Resource>
 
@@ -36,15 +36,10 @@ module Links =
         hreflang = None 
     }
 
-    let serializeLink link = 
-        json {
-            do! Json.write "href" link.href
-            match link.templated with
-            | Some b -> do! Json.write "templated" b
-            | _      -> ()
-        }
+    let serializeLink link : Json = 
+        Object <| Map.ofList
+            [ yield ("href", String link.href)
+              yield! match link.templated with Some b -> [ ("templated", Bool b) ] | _ -> [] ]
 
-    let toJson link = 
-        link
-        |> Json.serializeWith serializeLink 
-        |> Json.formatWith JsonFormattingOptions.Compact        
+    let toString link = 
+        serializeLink link |> Json.format
