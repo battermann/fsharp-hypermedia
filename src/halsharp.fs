@@ -41,5 +41,15 @@ module Links =
             [ yield ("href", String link.href)
               yield! match link.templated with Some b -> [ ("templated", Bool b) ] | _ -> [] ]
 
-    let toString link = 
-        serializeLink link |> Json.format
+module Resources =
+    open Types
+    open Links
+
+    let serializeResource resource : Json =
+        let createLink (rel, link) = rel, serializeLink link
+
+        resource.links
+        |> Map.toList
+        |> List.map createLink
+        |> Map.ofList |> Object
+        |> fun links -> Map.ofList [ "_links", links ] |> Object
