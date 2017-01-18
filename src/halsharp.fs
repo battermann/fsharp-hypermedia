@@ -17,7 +17,7 @@ module ResourceDefinition =
     }
 
     type Resource = {
-        links: Map<string, Link>
+        links: Map<string, Link list>
         embedded: Map<string, Resource list>
         properties: Map<string, Json>
     }
@@ -40,12 +40,18 @@ module Link =
             [ yield ("href", String link.href)
               yield! match link.templated with Some b -> [ ("templated", Bool b) ] | _ -> [] ]
 
+    let serializeNonEmptyLinkList links =
+        match links |> List.length with
+        | 1 -> serializeLink (links |> List.head)
+        | _ -> Array (links |> List.map serializeLink)
+
     let serializeLinks links =
-        if links |> Map.isEmpty then
+        let filteredLinks = links |> Map.filter (fun _ linkList -> not (List.isEmpty linkList))
+        if filteredLinks |> Map.isEmpty then
             Map.empty
         else
-            links
-            |> Map.map (fun rel link -> serializeLink link)
+            filteredLinks
+            |> Map.map (fun rel linkList -> serializeNonEmptyLinkList linkList)
             |> Object
             |> fun links -> Map.ofList [ "_links", links ]
 

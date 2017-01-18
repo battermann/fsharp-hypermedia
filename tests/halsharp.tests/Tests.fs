@@ -11,7 +11,6 @@ open Resource
 
 // todo ensure that _links and _embedded are reserved
 // todo implement other link attributes
-// allow array of links for a single name
 // implement curies
 
 [<Tests>]
@@ -53,11 +52,11 @@ let ``Resource tests`` =
             "number", Number 42M
             "json", Object (Map [ "hello", String "world" ]) ]
 
-  testList "resources" [   
+  testList "resource" [   
     testCase "resource with links to json" <| fun _ ->
       let resource = {
-        links = Map.ofList [ "self", Link.simpleLink "/orders"
-                             "next", Link.simpleLink "/orders?page=2"
+        links = Map.ofList [ "self", [ Link.simpleLink "/orders" ]
+                             "next", [ Link.simpleLink "/orders?page=2" ]
                            ]
         embedded = Map.empty
         properties = Map.empty
@@ -67,6 +66,32 @@ let ``Resource tests`` =
         (resource |> serializeResource |> Json.format) 
         """{"_links":{"next":{"href":"/orders?page=2"},"self":{"href":"/orders"}}}""" 
         "should return resource object with a _links object"   
+
+    testCase "resource with links with empty link list" <| fun _ ->
+      let resource = {
+        links = Map.ofList [ "self", [ ] ]
+        embedded = Map.empty
+        properties = Map.empty
+      }
+        
+      Expect.equal 
+        (resource |> serializeResource |> Json.format) 
+        """{}""" 
+        "should return resource object without a _links property"
+
+    testCase "resource with a link with multiple links" <| fun _ ->
+      let resource = {
+        links = Map.ofList [ "http://booklistapi.com/rels/authors", [ Link.simpleLink "/author/4554"
+                                                                      Link.simpleLink "/author/5758"
+                                                                      Link.simpleLink "/author/6853" ] ]        
+        embedded = Map.empty
+        properties = Map.empty
+      }
+        
+      Expect.equal 
+        (resource |> serializeResource |> Json.format) 
+        """{"_links":{"http://booklistapi.com/rels/authors":[{"href":"/author/4554"},{"href":"/author/5758"},{"href":"/author/6853"}]}}""" 
+        "should return resource object a link relation with multiple links"            
 
     testCase "resource with properties to json" <| fun _ ->
       let resource = {
@@ -95,8 +120,8 @@ let ``Resource tests`` =
 
     testCase "resource with embedded" <| fun _ ->
       let embedded = {
-        links = Map.ofList [ "self", Link.simpleLink "/orders"
-                             "next", Link.simpleLink "/orders?page=2"
+        links = Map.ofList [ "self", [ Link.simpleLink "/orders" ]
+                             "next", [ Link.simpleLink "/orders?page=2" ]
                            ]
         embedded = Map.empty
         properties = Map.ofList [ "thing", someOject ]
