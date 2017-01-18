@@ -3,7 +3,7 @@ module HalSharp
 open System
 open Chiron
 
-module Types =
+module ResourceDefinition =
 
     type Link = {
         href: string
@@ -21,10 +21,10 @@ module Types =
         embedded: Embedded
         properties: Map<string, Json>
     }
-    and Embedded = Map<string, Resource>
+    and Embedded = Map<string, Resource list>
 
-module Links =
-    open Types
+module Link =
+    open ResourceDefinition
     let simpleLink href = {
         href = href
         templated = None
@@ -41,15 +41,32 @@ module Links =
             [ yield ("href", String link.href)
               yield! match link.templated with Some b -> [ ("templated", Bool b) ] | _ -> [] ]
 
-module Resources =
-    open Types
-    open Links
-
-    let serializeResource resource : Json =
+    let serializeLinks links =
         let createLink (rel, link) = rel, serializeLink link
 
-        resource.links
-        |> Map.toList
-        |> List.map createLink
-        |> Map.ofList |> Object
-        |> fun links -> Map.ofList [ "_links", links ] |> Object
+        if links |> Map.isEmpty then
+            Map.empty
+        else
+            links
+            |> Map.toList
+            |> List.map createLink
+            |> Map.ofList |> Object
+            |> fun links -> Map.ofList [ "_links", links ]
+
+module Resource =
+    open ResourceDefinition
+
+    let EmptyObject = Object <| Map.empty
+
+    let serializeResource resource : Json =
+        let merge (p:Map<'a,'b>) (q:Map<'a,'b>) = 
+            Map(Seq.concat [ (Map.toSeq p) ; (Map.toSeq q) ])
+
+        let links = Link.serializeLinks resource.links
+        
+        let members = merge links resource.properties
+                                     
+        if members |> Map.isEmpty then
+            EmptyObject
+        else
+            members |> Object
