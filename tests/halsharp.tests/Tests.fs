@@ -10,7 +10,6 @@ open ResourceDefinition
 open Resource
 
 // todo ensure that _links and _embedded are reserved
-// todo implement other link attributes
 // implement curies
 
 [<Tests>]
@@ -41,6 +40,21 @@ let ``Link tests`` =
         ({ Link.simpleLink "/orders/{id}" with templated = Some true } |> Link.serializeLink |> Json.format) 
         """{"href":"/orders/{id}","templated":true}""" 
         "should return link object with href and templated attribute"
+    testCase "link with other attributes" <| fun _ ->
+      let link = { 
+        Link.simpleLink "/orders/{id}" 
+        with templated = Some true
+             mediaType = Some "application/json"
+             deprication = Some (System.Uri("http://example.com/deprications/foo"))
+             name = Some "j39fh23hf"
+             title = Some "Order"
+             profile = Some (System.Uri("http://example.com/profiles/foo"))
+             hreflang = Some "de-de"
+      }
+      Expect.equal 
+        (link |> Link.serializeLink |> Json.format) 
+        """{"deprication":"http://example.com/deprications/foo","href":"/orders/{id}","hreflang":"de-de","name":"j39fh23hf","profile":"http://example.com/profiles/foo","templated":true,"title":"Order","type":"application/json"}""" 
+        "should return link object with href and templated attribute"        
   ]
 
 
