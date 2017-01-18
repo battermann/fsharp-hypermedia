@@ -4,9 +4,7 @@ open Expecto
 open Chiron
 
 open HalSharp
-
 open ResourceDefinition
-
 open Resource
 
 // todo ensure that _links and _embedded are unique

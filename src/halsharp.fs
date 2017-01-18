@@ -35,8 +35,7 @@ module Link =
         hreflang = None 
     }
 
-    let serializeLink link =            
-
+    let serializeLink link =
         Object <| Map.ofList
             [ yield ("href", String link.href)
               yield! match link.templated with Some b -> [ "templated", Bool b ] | _ -> []
@@ -46,18 +45,17 @@ module Link =
               yield! match link.profile with Some prof -> [ "profile", String (prof.ToString()) ] | _ -> []
               yield! match link.title with Some title -> [ "title", String title ] | _ -> []
               yield! match link.hreflang with Some lang -> [ "hreflang", String lang ] | _ -> [] ]
-
-    let serializeNonEmptyLinkList links =
-        match links |> List.length with
-        | 1 -> serializeLink (links |> List.head)
-        | _ -> Array (links |> List.map serializeLink)
-
     let serializeLinks links =
-        let filteredLinks = links |> Map.filter (fun _ linkList -> not (List.isEmpty linkList))
-        if filteredLinks |> Map.isEmpty then
+        let serializeNonEmptyLinkList links =
+            match links |> List.length with
+            | 1 -> serializeLink (links |> List.head)
+            | _ -> Array (links |> List.map serializeLink)
+
+        let nonEmptyLinks = links |> Map.filter (fun _ linkList -> not (List.isEmpty linkList))
+        if nonEmptyLinks |> Map.isEmpty then
             Map.empty
         else
-            filteredLinks
+            nonEmptyLinks
             |> Map.map (fun rel linkList -> serializeNonEmptyLinkList linkList)
             |> Object
             |> fun links -> Map.ofList [ "_links", links ]
@@ -66,21 +64,17 @@ module Link =
 module Resource =
     open ResourceDefinition
 
-    let EmptyObject = Object <| Map.empty
-
     let rec serializeResource resource : Json =
         let merge (maps: Map<'a,'b> seq): Map<'a,'b> = 
             Map.ofList <| List.concat (maps |> Seq.map Map.toList)
-
-        let links = Link.serializeLinks resource.links
-
-        let serializeEmbedded resources =
-            match resources |> List.length with
-            | 0 -> EmptyObject
-            | 1 -> serializeResource (resources |> List.head)
-            | _ -> Array (resources |> List.map serializeResource)
-            
+          
         let embedded =
+            let serializeEmbedded resources =
+                match resources |> List.length with
+                | 0 -> Object <| Map.empty
+                | 1 -> serializeResource (resources |> List.head)
+                | _ -> Array (resources |> List.map serializeResource)
+
             let embeddedMap = 
                 resource.embedded
                 |> Map.map (fun rel res -> serializeEmbedded res)
@@ -90,9 +84,8 @@ module Resource =
             else
                 Map.ofList [ "_embedded", embeddedMap |> Object ]
 
-        let members = merge [ links; resource.properties; embedded ]
-                                     
-        if members |> Map.isEmpty then
-            EmptyObject
-        else
-            members |> Object
+        let links = Link.serializeLinks resource.links                
+
+        [ links; resource.properties; embedded ]
+        |> merge
+        |> Object
