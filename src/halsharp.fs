@@ -18,10 +18,9 @@ module ResourceDefinition =
 
     type Resource = {
         links: Map<string, Link>
-        embedded: Embedded
+        embedded: Map<string, Resource list>
         properties: Map<string, Json>
     }
-    and Embedded = Map<string, Resource list>
 
 module Link =
     open ResourceDefinition
@@ -36,35 +35,49 @@ module Link =
         hreflang = None 
     }
 
-    let serializeLink link : Json = 
+    let serializeLink link = 
         Object <| Map.ofList
             [ yield ("href", String link.href)
               yield! match link.templated with Some b -> [ ("templated", Bool b) ] | _ -> [] ]
 
     let serializeLinks links =
-        let createLink (rel, link) = rel, serializeLink link
-
         if links |> Map.isEmpty then
             Map.empty
         else
             links
-            |> Map.toList
-            |> List.map createLink
-            |> Map.ofList |> Object
+            |> Map.map (fun rel link -> serializeLink link)
+            |> Object
             |> fun links -> Map.ofList [ "_links", links ]
+
 
 module Resource =
     open ResourceDefinition
 
     let EmptyObject = Object <| Map.empty
 
-    let serializeResource resource : Json =
-        let merge (p:Map<'a,'b>) (q:Map<'a,'b>) = 
-            Map(Seq.concat [ (Map.toSeq p) ; (Map.toSeq q) ])
+    let rec serializeResource resource : Json =
+        let merge (maps: Map<'a,'b> seq): Map<'a,'b> = 
+            Map.ofList <| List.concat (maps |> Seq.map Map.toList)
 
         let links = Link.serializeLinks resource.links
-        
-        let members = merge links resource.properties
+
+        let serializeEmbedded resources =
+            match resources |> List.length with
+            | 0 -> EmptyObject
+            | 1 -> serializeResource (resources |> List.head)
+            | _ -> Array (resources |> List.map serializeResource)
+            
+        let embedded =
+            let embeddedMap = 
+                resource.embedded
+                |> Map.map (fun rel res -> serializeEmbedded res)
+                
+            if embeddedMap |> Map.isEmpty then
+                Map.empty
+            else
+                Map.ofList [ "_embedded", embeddedMap |> Object ]
+
+        let members = merge [ links; resource.properties; embedded ]
                                      
         if members |> Map.isEmpty then
             EmptyObject

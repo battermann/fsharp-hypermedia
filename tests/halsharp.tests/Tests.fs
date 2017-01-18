@@ -19,7 +19,7 @@ let ``Empty resource`` =
     testCase "empty resource" <| fun _ ->
       let resource = {
         links = Map.empty
-        embedded = Embedded []
+        embedded = Map.empty
         properties = Map.empty
       }
         
@@ -59,7 +59,7 @@ let ``Resource tests`` =
         links = Map.ofList [ "self", Link.simpleLink "/orders"
                              "next", Link.simpleLink "/orders?page=2"
                            ]
-        embedded = Embedded []
+        embedded = Map.empty
         properties = Map.empty
       }
         
@@ -71,7 +71,7 @@ let ``Resource tests`` =
     testCase "resource with properties to json" <| fun _ ->
       let resource = {
         links = Map.empty
-        embedded = Embedded []
+        embedded = Map.empty
         properties = Map.ofList [ "currentlyProcessing", Number 14M
                                   "shippedToday", Number 20M ]
       }
@@ -84,12 +84,32 @@ let ``Resource tests`` =
     testCase "resource with property with json to json" <| fun _ ->
       let resource = {
         links = Map.empty
-        embedded = Embedded []
+        embedded = Map.empty
         properties = Map.ofList [ "thing", someOject ]
       }
         
       Expect.equal 
         (resource |> serializeResource |> Json.format) 
         """{"thing":{"json":{"hello":"world"},"number":42,"string":"hello"}}""" 
-        "should return resource object with property with json"                            
+        "should return resource object with property with json"  
+
+    testCase "resource with embedded" <| fun _ ->
+      let embedded = {
+        links = Map.ofList [ "self", Link.simpleLink "/orders"
+                             "next", Link.simpleLink "/orders?page=2"
+                           ]
+        embedded = Map.empty
+        properties = Map.ofList [ "thing", someOject ]
+      }
+
+      let resource = {
+        links = Map.empty
+        embedded = Map.ofList [ "thing", [ embedded; embedded ] ]
+        properties = Map.empty
+      }
+        
+      Expect.equal 
+        (resource |> serializeResource |> Json.format) 
+        """{"_embedded":{"thing":[{"_links":{"next":{"href":"/orders?page=2"},"self":{"href":"/orders"}},"thing":{"json":{"hello":"world"},"number":42,"string":"hello"}},{"_links":{"next":{"href":"/orders?page=2"},"self":{"href":"/orders"}},"thing":{"json":{"hello":"world"},"number":42,"string":"hello"}}]}}""" 
+        "should return resource object with an embedded resource"                                    
   ]
