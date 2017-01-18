@@ -20,7 +20,7 @@ let ``Empty resource`` =
       }
         
       Expect.equal 
-        (resource |> serializeResource |> Json.format) 
+        (resource |> toJson |> Json.format) 
         """{}""" 
         "should return an empty resource" 
 
@@ -30,17 +30,17 @@ let ``Link tests`` =
   testList "links" [
     testCase "simple link to string" <| fun _ ->
       Expect.equal 
-        (Link.simpleLink "/orders" |> Link.serializeLink |> Json.format) 
+        (Link.simple "/orders" |> Link.singleLinkToJson |> Json.format) 
         """{"href":"/orders"}""" 
         "should return simple link with href attribute"
     testCase "link with template to string" <| fun _ ->
       Expect.equal 
-        ({ Link.simpleLink "/orders/{id}" with templated = Some true } |> Link.serializeLink |> Json.format) 
+        ({ Link.simple "/orders/{id}" with templated = Some true } |> Link.singleLinkToJson |> Json.format) 
         """{"href":"/orders/{id}","templated":true}""" 
         "should return link object with href and templated attribute"
     testCase "link with other attributes" <| fun _ ->
       let link = { 
-        Link.simpleLink "/orders/{id}" 
+        Link.simple "/orders/{id}" 
         with templated = Some true
              mediaType = Some "application/json"
              deprication = Some (System.Uri("http://example.com/deprications/foo"))
@@ -50,7 +50,7 @@ let ``Link tests`` =
              hreflang = Some "de-de"
       }
       Expect.equal 
-        (link |> Link.serializeLink |> Json.format) 
+        (link |> Link.singleLinkToJson |> Json.format) 
         """{"deprication":"http://example.com/deprications/foo","href":"/orders/{id}","hreflang":"de-de","name":"j39fh23hf","profile":"http://example.com/profiles/foo","templated":true,"title":"Order","type":"application/json"}""" 
         "should return link object with href and templated attribute"        
   ]
@@ -67,15 +67,15 @@ let ``Resource tests`` =
   testList "resource" [   
     testCase "resource with links to json" <| fun _ ->
       let resource = {
-        links = Map.ofList [ "self", [ Link.simpleLink "/orders" ]
-                             "next", [ Link.simpleLink "/orders?page=2" ]
+        links = Map.ofList [ "self", [ Link.simple "/orders" ]
+                             "next", [ Link.simple "/orders?page=2" ]
                            ]
         embedded = Map.empty
         properties = Map.empty
       }
         
       Expect.equal 
-        (resource |> serializeResource |> Json.format) 
+        (resource |> toJson |> Json.format) 
         """{"_links":{"next":{"href":"/orders?page=2"},"self":{"href":"/orders"}}}""" 
         "should return resource object with a _links object"   
 
@@ -87,21 +87,21 @@ let ``Resource tests`` =
       }
         
       Expect.equal 
-        (resource |> serializeResource |> Json.format) 
+        (resource |> toJson |> Json.format) 
         """{}""" 
         "should return resource object without a _links property"
 
     testCase "resource with a link with multiple links" <| fun _ ->
       let resource = {
-        links = Map.ofList [ "http://booklistapi.com/rels/authors", [ Link.simpleLink "/author/4554"
-                                                                      Link.simpleLink "/author/5758"
-                                                                      Link.simpleLink "/author/6853" ] ]        
+        links = Map.ofList [ "http://booklistapi.com/rels/authors", [ Link.simple "/author/4554"
+                                                                      Link.simple "/author/5758"
+                                                                      Link.simple "/author/6853" ] ]        
         embedded = Map.empty
         properties = Map.empty
       }
         
       Expect.equal 
-        (resource |> serializeResource |> Json.format) 
+        (resource |> toJson |> Json.format) 
         """{"_links":{"http://booklistapi.com/rels/authors":[{"href":"/author/4554"},{"href":"/author/5758"},{"href":"/author/6853"}]}}""" 
         "should return resource object a link relation with multiple links"            
 
@@ -114,7 +114,7 @@ let ``Resource tests`` =
       }
         
       Expect.equal 
-        (resource |> serializeResource |> Json.format) 
+        (resource |> toJson |> Json.format) 
         """{"currentlyProcessing":14,"shippedToday":20}""" 
         "should return resource object with two properties"      
 
@@ -126,14 +126,14 @@ let ``Resource tests`` =
       }
         
       Expect.equal 
-        (resource |> serializeResource |> Json.format) 
+        (resource |> toJson |> Json.format) 
         """{"thing":{"json":{"hello":"world"},"number":42,"string":"hello"}}""" 
         "should return resource object with property with json"  
 
     testCase "resource with embedded" <| fun _ ->
       let embedded = {
-        links = Map.ofList [ "self", [ Link.simpleLink "/orders" ]
-                             "next", [ Link.simpleLink "/orders?page=2" ]
+        links = Map.ofList [ "self", [ Link.simple "/orders" ]
+                             "next", [ Link.simple "/orders?page=2" ]
                            ]
         embedded = Map.empty
         properties = Map.ofList [ "thing", someOject ]
@@ -146,7 +146,7 @@ let ``Resource tests`` =
       }
         
       Expect.equal 
-        (resource |> serializeResource |> Json.format) 
+        (resource |> toJson |> Json.format) 
         """{"_embedded":{"thing":[{"_links":{"next":{"href":"/orders?page=2"},"self":{"href":"/orders"}},"thing":{"json":{"hello":"world"},"number":42,"string":"hello"}},{"_links":{"next":{"href":"/orders?page=2"},"self":{"href":"/orders"}},"thing":{"json":{"hello":"world"},"number":42,"string":"hello"}}]}}""" 
         "should return resource object with an embedded resource"      
 
@@ -160,7 +160,7 @@ let ``Resource tests`` =
       }
 
       let shipping = {
-        links = Map.ofList [ "self", [ Link.simpleLink "/shipping/135451" ] ]
+        links = Map.ofList [ "self", [ Link.simple "/shipping/135451" ] ]
         embedded = Map.empty
         properties = Map.ofList [ "first_name", String "Heman"
                                   "last_name", String "Radtke"
@@ -172,7 +172,7 @@ let ``Resource tests`` =
       }
 
       let billing = {
-        links = Map.ofList [ "self", [ Link.simpleLink "/billing/135451" ] ]
+        links = Map.ofList [ "self", [ Link.simple "/billing/135451" ] ]
         embedded = Map.empty
         properties = Map.ofList [ "first_name", String "Herman"
                                   "last_name", String "Radtke"
@@ -188,12 +188,12 @@ let ``Resource tests`` =
       }
 
       let resource = {
-        links = Map.ofList [ "self", [ Link.simpleLink "/payment" ]
-                             "http://example.com/rels/billing", [ Link.simpleLink "/member/109087/billing" ]
-                             "http://example.com/rels/shipping", [ Link.simpleLink "/member/109087/shipping" ]
-                             "http://example.com/rels/payment/coupon", [ Link.simpleLink "/payment/coupon" ]
-                             "http://example.com/rels/payment/billing", [ Link.simpleLink "/payment/billing" ]
-                             "http://example.com/rels/payment/shipping", [ Link.simpleLink "/payment/shipping" ]
+        links = Map.ofList [ "self", [ Link.simple "/payment" ]
+                             "http://example.com/rels/billing", [ Link.simple "/member/109087/billing" ]
+                             "http://example.com/rels/shipping", [ Link.simple "/member/109087/shipping" ]
+                             "http://example.com/rels/payment/coupon", [ Link.simple "/payment/coupon" ]
+                             "http://example.com/rels/payment/billing", [ Link.simple "/payment/billing" ]
+                             "http://example.com/rels/payment/shipping", [ Link.simple "/payment/shipping" ]
                            ]
         embedded = Map.ofList [ "http://www.example.com/rels/coupon", [ coupon ]
                                 "http://example.com/rels/shipping", [ shipping ]
@@ -205,7 +205,7 @@ let ``Resource tests`` =
       }
        
       Expect.equal 
-        (resource |> serializeResource |> Json.format) 
+        (resource |> toJson |> Json.format) 
         """{"_embedded":{"http://example.com/rels/billing":{"_links":{"self":{"href":"/billing/135451"}},"address":"1234 Day St.","card_exp_month":"01","card_exp_year":"2015","card_number":"1111","card_type":"mastercard","city":"Los Angeles","country_iso":"US","first_name":"Herman","last_name":"Radtke","state":"CA","zipcode":"90015"},"http://example.com/rels/shipping":{"_links":{"self":{"href":"/shipping/135451"}},"address":"1234 Day St.","city":"Los Angeles","country_iso":"US","first_name":"Heman","last_name":"Radtke","state":"CA","zipcode":"90015"},"http://www.example.com/rels/coupon":{"amount":"10","code":"A0318A97","type":"dollarOff"}},"_links":{"http://example.com/rels/billing":{"href":"/member/109087/billing"},"http://example.com/rels/payment/billing":{"href":"/payment/billing"},"http://example.com/rels/payment/coupon":{"href":"/payment/coupon"},"http://example.com/rels/payment/shipping":{"href":"/payment/shipping"},"http://example.com/rels/shipping":{"href":"/member/109087/shipping"},"self":{"href":"/payment"}},"freight":5,"subtotal":49,"tax":0,"total":44}""" 
         "should return resource object corresponding to correct e-commerce example"                                            
   ]
