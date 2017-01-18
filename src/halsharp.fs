@@ -47,7 +47,7 @@ module Link =
               yield! match link.hreflang with Some lang -> [ "hreflang", String lang ] | _ -> [] ]
 
     let toJson (links: Map<string, Link list>) : Json option =
-        let serializeNonEmptyLinkList links =
+        let linkListToJson links =
             match links |> List.length with
             | 1 -> singleLinkToJson (links |> List.head)
             | _ -> Array (links |> List.map singleLinkToJson)
@@ -58,7 +58,7 @@ module Link =
             None
         else
             nonEmptyLinks
-            |> Map.map (fun rel linkList -> serializeNonEmptyLinkList linkList)
+            |> Map.map (fun _ linkList -> linkListToJson linkList)
             |> Object
             |> Some
 
