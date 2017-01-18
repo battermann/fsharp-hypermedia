@@ -9,7 +9,7 @@ open ResourceDefinition
 
 open Resource
 
-// todo ensure that _links and _embedded are reserved
+// todo ensure that _links and _embedded are unique
 // implement curies
 
 [<Tests>]
@@ -150,5 +150,64 @@ let ``Resource tests`` =
       Expect.equal 
         (resource |> serializeResource |> Json.format) 
         """{"_embedded":{"thing":[{"_links":{"next":{"href":"/orders?page=2"},"self":{"href":"/orders"}},"thing":{"json":{"hello":"world"},"number":42,"string":"hello"}},{"_links":{"next":{"href":"/orders?page=2"},"self":{"href":"/orders"}},"thing":{"json":{"hello":"world"},"number":42,"string":"hello"}}]}}""" 
-        "should return resource object with an embedded resource"                                    
+        "should return resource object with an embedded resource"      
+
+    testCase "E-commerce example" <| fun _ ->
+      let coupon = {
+        links = Map.empty
+        embedded = Map.empty
+        properties = Map.ofList [ "type", String "dollarOff"
+                                  "amount", String "10"
+                                  "code", String "A0318A97" ]
+      }
+
+      let shipping = {
+        links = Map.ofList [ "self", [ Link.simpleLink "/shipping/135451" ] ]
+        embedded = Map.empty
+        properties = Map.ofList [ "first_name", String "Heman"
+                                  "last_name", String "Radtke"
+                                  "address", String "1234 Day St."
+                                  "city", String "Los Angeles"
+                                  "state", String "CA"
+                                  "zipcode", String "90015"
+                                  "country_iso", String "US" ]        
+      }
+
+      let billing = {
+        links = Map.ofList [ "self", [ Link.simpleLink "/billing/135451" ] ]
+        embedded = Map.empty
+        properties = Map.ofList [ "first_name", String "Herman"
+                                  "last_name", String "Radtke"
+                                  "address", String "1234 Day St."
+                                  "city", String "Los Angeles"
+                                  "state", String "CA"
+                                  "zipcode", String "90015"
+                                  "country_iso", String "US"
+                                  "card_number", String "1111"
+                                  "card_type", String "mastercard"
+                                  "card_exp_year", String "2015"
+                                  "card_exp_month", String "01" ]        
+      }
+
+      let resource = {
+        links = Map.ofList [ "self", [ Link.simpleLink "/payment" ]
+                             "http://example.com/rels/billing", [ Link.simpleLink "/member/109087/billing" ]
+                             "http://example.com/rels/shipping", [ Link.simpleLink "/member/109087/shipping" ]
+                             "http://example.com/rels/payment/coupon", [ Link.simpleLink "/payment/coupon" ]
+                             "http://example.com/rels/payment/billing", [ Link.simpleLink "/payment/billing" ]
+                             "http://example.com/rels/payment/shipping", [ Link.simpleLink "/payment/shipping" ]
+                           ]
+        embedded = Map.ofList [ "http://www.example.com/rels/coupon", [ coupon ]
+                                "http://example.com/rels/shipping", [ shipping ]
+                                "http://example.com/rels/billing", [ billing ] ]
+        properties = Map.ofList [ "subtotal", Number 49M
+                                  "tax", Number 0M
+                                  "freight", Number 5M
+                                  "total", Number 44M ]
+      }
+       
+      Expect.equal 
+        (resource |> serializeResource |> Json.format) 
+        """{"_embedded":{"http://example.com/rels/billing":{"_links":{"self":{"href":"/billing/135451"}},"address":"1234 Day St.","card_exp_month":"01","card_exp_year":"2015","card_number":"1111","card_type":"mastercard","city":"Los Angeles","country_iso":"US","first_name":"Herman","last_name":"Radtke","state":"CA","zipcode":"90015"},"http://example.com/rels/shipping":{"_links":{"self":{"href":"/shipping/135451"}},"address":"1234 Day St.","city":"Los Angeles","country_iso":"US","first_name":"Heman","last_name":"Radtke","state":"CA","zipcode":"90015"},"http://www.example.com/rels/coupon":{"amount":"10","code":"A0318A97","type":"dollarOff"}},"_links":{"http://example.com/rels/billing":{"href":"/member/109087/billing"},"http://example.com/rels/payment/billing":{"href":"/payment/billing"},"http://example.com/rels/payment/coupon":{"href":"/payment/coupon"},"http://example.com/rels/payment/shipping":{"href":"/payment/shipping"},"http://example.com/rels/shipping":{"href":"/member/109087/shipping"},"self":{"href":"/payment"}},"freight":5,"subtotal":49,"tax":0,"total":44}""" 
+        "should return resource object corresponding to correct e-commerce example"                                            
   ]
