@@ -3,27 +3,25 @@ module HalSharp
 open System
 open Chiron
 
-module ResourceDefinition =
+type Link = {
+    href: string
+    templated: bool option
+    mediaType: string option
+    deprication: Uri option
+    name: string option
+    profile: Uri option
+    title: string option
+    hreflang: string option
+}
 
-    type Link = {
-        href: string
-        templated: bool option
-        mediaType: string option
-        deprication: Uri option
-        name: string option
-        profile: Uri option
-        title: string option
-        hreflang: string option
-    }
+type Resource = {
+    links: Map<string, Link list>
+    embedded: Map<string, Resource list>
+    properties: Map<string, Json>
+}
 
-    type Resource = {
-        links: Map<string, Link list>
-        embedded: Map<string, Resource list>
-        properties: Map<string, Json>
-    }
-
-module Link =
-    open ResourceDefinition
+[<RequireQualifiedAccess>]
+module internal Link =
     let simple href = {
         href = href
         templated = None
@@ -62,14 +60,17 @@ module Link =
             |> Object
             |> Some
 
-
+[<RequireQualifiedAccess>]
 module Resource =
-    open ResourceDefinition
-
+    let empty = {
+        links = Map.empty
+        embedded = Map.empty
+        properties = Map.empty
+    }
     let rec toJson resource : Json =
         let merge (maps: Map<'a,'b> seq): Map<'a,'b> = 
             Map.ofList <| List.concat (maps |> Seq.map Map.toList)
-          
+        
         let embedded =
             let serializeEmbedded resources =
                 match resources |> List.length with
@@ -94,3 +95,6 @@ module Resource =
         [ links; resource.properties; embedded ]
         |> merge
         |> Object
+
+[<assembly:System.Runtime.CompilerServices.InternalsVisibleTo ("halsharp.tests")>]
+()        
