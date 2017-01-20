@@ -40,7 +40,7 @@ module internal Link =
         hreflang = None 
     }
 
-    let singleLinkToJson link : Instance<'a> =
+    let serializeSingleLink link : Instance<'a> =
         Instance <| Map.ofList
             [ yield ("href", String link.href)
               yield! match link.templated with Some b -> [ "templated", Bool b ] | _ -> []
@@ -51,11 +51,11 @@ module internal Link =
               yield! match link.title with Some title -> [ "title", String title ] | _ -> []
               yield! match link.hreflang with Some lang -> [ "hreflang", String lang ] | _ -> [] ]
 
-    let toJson (links: Map<string, Link list>) : Instance<'a> option =
-        let linkListToJson links =
+    let serialize (links: Map<string, Link list>) : Instance<'a> option =
+        let serializeLinkList links =
             match links |> List.length with
-            | 1 -> singleLinkToJson (links |> List.head)
-            | _ -> Array (links |> List.map singleLinkToJson)
+            | 1 -> serializeSingleLink (links |> List.head)
+            | _ -> Array (links |> List.map serializeSingleLink)
 
         let nonEmptyLinks = links |> Map.filter (fun _ linkList -> not (List.isEmpty linkList))
 
@@ -63,7 +63,7 @@ module internal Link =
             None
         else
             nonEmptyLinks
-            |> Map.map (fun _ linkList -> linkListToJson linkList)
+            |> Map.map (fun _ linkList -> serializeLinkList linkList)
             |> Instance
             |> Some
 
@@ -74,7 +74,7 @@ module Resource =
         embedded = Map.empty
         properties = Map.empty
     }
-    let rec toJson resource : Instance<'a> =
+    let rec serialize resource : Instance<'a> =
         let merge (maps: Map<_,_> seq): Map<_,_> = 
             Map.ofList <| List.concat (maps |> Seq.map Map.toList)
         
@@ -82,8 +82,8 @@ module Resource =
             let serializeEmbedded resources =
                 match resources |> List.length with
                 | 0 -> Instance <| Map.empty
-                | 1 -> toJson (resources |> List.head)
-                | _ -> Array (resources |> List.map toJson)
+                | 1 -> serialize (resources |> List.head)
+                | _ -> Array (resources |> List.map serialize)
 
             let embeddedMap = 
                 resource.embedded
@@ -95,7 +95,7 @@ module Resource =
                 Map.ofList [ "_embedded", embeddedMap |> Instance ]
 
         let links = 
-            match Link.toJson resource.links with
+            match Link.serialize resource.links with
             | Some ls -> Map.ofList [ "_links", ls ]
             | _       -> Map.empty
 
