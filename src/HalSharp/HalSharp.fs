@@ -1,7 +1,13 @@
 module HalSharp
 
 open System
-open Chiron
+
+type Instance<'a> =
+    | Pure of 'a
+    | Instance of Map<string, Instance<'a>>
+    | String of string
+    | Array of Instance<'a> list
+    | Bool of bool
 
 type Link = {
     href: string
@@ -14,13 +20,14 @@ type Link = {
     hreflang: string option
 }
 
-type Resource = {
+type Resource<'a> = {
     links: Map<string, Link list>
-    embedded: Map<string, Resource list>
-    properties: Map<string, Json>
+    embedded: Map<string, Resource<'a> list>
+    properties: Map<string, Instance<'a>>
 }
 
 [<RequireQualifiedAccess>]
+[<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
 module internal Link =
     let simple href = {
         href = href
@@ -33,8 +40,8 @@ module internal Link =
         hreflang = None 
     }
 
-    let singleLinkToJson link : Json =
-        Object <| Map.ofList
+    let singleLinkToJson link : Instance<'a> =
+        Instance <| Map.ofList
             [ yield ("href", String link.href)
               yield! match link.templated with Some b -> [ "templated", Bool b ] | _ -> []
               yield! match link.mediaType with Some mt -> [ "type", String mt ] | _ -> []
@@ -44,7 +51,7 @@ module internal Link =
               yield! match link.title with Some title -> [ "title", String title ] | _ -> []
               yield! match link.hreflang with Some lang -> [ "hreflang", String lang ] | _ -> [] ]
 
-    let toJson (links: Map<string, Link list>) : Json option =
+    let toJson (links: Map<string, Link list>) : Instance<'a> option =
         let linkListToJson links =
             match links |> List.length with
             | 1 -> singleLinkToJson (links |> List.head)
@@ -57,7 +64,7 @@ module internal Link =
         else
             nonEmptyLinks
             |> Map.map (fun _ linkList -> linkListToJson linkList)
-            |> Object
+            |> Instance
             |> Some
 
 [<RequireQualifiedAccess>]
@@ -67,14 +74,14 @@ module Resource =
         embedded = Map.empty
         properties = Map.empty
     }
-    let rec toJson resource : Json =
-        let merge (maps: Map<'a,'b> seq): Map<'a,'b> = 
+    let rec toJson resource : Instance<'a> =
+        let merge (maps: Map<_,_> seq): Map<_,_> = 
             Map.ofList <| List.concat (maps |> Seq.map Map.toList)
         
         let embedded =
             let serializeEmbedded resources =
                 match resources |> List.length with
-                | 0 -> Object <| Map.empty
+                | 0 -> Instance <| Map.empty
                 | 1 -> toJson (resources |> List.head)
                 | _ -> Array (resources |> List.map toJson)
 
@@ -85,7 +92,7 @@ module Resource =
             if embeddedMap |> Map.isEmpty then
                 Map.empty
             else
-                Map.ofList [ "_embedded", embeddedMap |> Object ]
+                Map.ofList [ "_embedded", embeddedMap |> Instance ]
 
         let links = 
             match Link.toJson resource.links with
@@ -94,7 +101,7 @@ module Resource =
 
         [ links; resource.properties; embedded ]
         |> merge
-        |> Object
+        |> Instance
 
 [<assembly:System.Runtime.CompilerServices.InternalsVisibleTo ("halsharp.tests")>]
 ()        
