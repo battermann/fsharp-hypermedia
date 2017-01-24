@@ -7,5 +7,5 @@ let rec interpret (instance: Hal.AbstractJsonObject<Json>) : Json =
     | Hal.Pure a       -> a
     | Hal.Bool b       -> Bool b
     | Hal.String s     -> String s
-    | Hal.Instance map -> Object (map |> Map.map (fun _ v -> interpret v))
+    | Hal.Record map   -> Object (map |> Map.map (fun _ v -> interpret v))
     | Hal.Array a      -> Array (a |> List.map interpret)

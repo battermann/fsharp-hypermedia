@@ -5,7 +5,7 @@ open System
 /// Represents a minimal generic Json object to describe a HAL resource
 type AbstractJsonObject<'a> =
     | Pure of 'a
-    | Instance of Map<string, AbstractJsonObject<'a>>
+    | Record of Map<string, AbstractJsonObject<'a>>
     | String of string
     | Array of AbstractJsonObject<'a> list
     | Bool of bool
@@ -53,7 +53,7 @@ module internal Link =
               yield! match link.profile with Some prof -> [ "profile", String (prof.ToString()) ] | _ -> []
               yield! match link.title with Some title -> [ "title", String title ] | _ -> []
               yield! match link.hreflang with Some lang -> [ "hreflang", String lang ] | _ -> [] ]
-            |> Instance
+            |> Record
 
     let serialize (links: Map<string, Link list>) : AbstractJsonObject<'a> option =
         let serializeLinkList links =
@@ -68,7 +68,7 @@ module internal Link =
         else
             nonEmptyLinks
             |> Map.map (fun _ linkList -> serializeLinkList linkList)
-            |> Instance
+            |> Record
             |> Some
 
 /// Contains functions to transform resources to Json representations
@@ -81,6 +81,7 @@ module Resource =
         embedded = Map.empty
         properties = Map.empty
     }
+
     let rec internal serialize resource =
         let merge (maps: Map<_,_> seq): Map<_,_> = 
             List.concat (maps |> Seq.map Map.toList) |> Map.ofList
@@ -88,7 +89,7 @@ module Resource =
         let embedded =
             let serializeEmbedded resources =
                 match resources |> List.length with
-                | 0 -> Instance Map.empty
+                | 0 -> Record Map.empty
                 | 1 -> serialize (resources |> List.head)
                 | _ -> Array (resources |> List.map serialize)
 
@@ -99,7 +100,7 @@ module Resource =
             if embeddedMap |> Map.isEmpty then
                 Map.empty
             else
-                Map.ofList [ "_embedded", embeddedMap |> Instance ]
+                Map.ofList [ "_embedded", embeddedMap |> Record ]
 
         let links = 
             match Link.serialize resource.links with
@@ -108,10 +109,10 @@ module Resource =
 
         [ links; resource.properties; embedded ]
         |> merge
-        |> Instance
+        |> Record
 
     /// Serializes a HAL resource representation to a specific Json representation.
-    /// The interpreter transforms the generic Json representation to a specific representation
+    /// The interpreter transforms the generic Json representation to a specific representation.
     let toJson interpreter resource =
         resource |> serialize |> interpreter
 
