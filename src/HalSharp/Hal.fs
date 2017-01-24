@@ -2,6 +2,7 @@ module Hal
 
 open System
 
+/// Represents a minimal generic Json object to describe a HAL resource
 type AbstractJsonObject<'a> =
     | Pure of 'a
     | Instance of Map<string, AbstractJsonObject<'a>>
@@ -9,7 +10,7 @@ type AbstractJsonObject<'a> =
     | Array of AbstractJsonObject<'a> list
     | Bool of bool
 
-// according to hal specification (https://tools.ietf.org/html/draft-kelly-json-hal-08)
+/// A link representation according to the HAL specification (https://tools.ietf.org/html/draft-kelly-json-hal-08)
 type Link = {
     href: string
     templated: bool option
@@ -21,6 +22,7 @@ type Link = {
     hreflang: string option
 }
 
+/// A resource representation according to the HAL specification (https://tools.ietf.org/html/draft-kelly-json-hal-08)
 type Resource<'a> = {
     links: Map<string, Link list>
     embedded: Map<string, Resource<'a> list>
@@ -69,8 +71,11 @@ module internal Link =
             |> Instance
             |> Some
 
+/// Contains functions to transform resources to Json representations
 [<RequireQualifiedAccess>]
 module Resource =
+
+    /// returns an empty resource object the represents a valid HAL resource
     let empty = {
         links = Map.empty
         embedded = Map.empty
@@ -105,6 +110,8 @@ module Resource =
         |> merge
         |> Instance
 
+    /// Serializes a HAL resource representation to a specific Json representation.
+    /// The interpreter transforms the generic Json representation to a specific representation
     let toJson interpreter resource =
         resource |> serialize |> interpreter
 
