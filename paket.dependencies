@@ -4,3 +4,4 @@ nuget Expecto
 nuget FAKE
 nuget FSharp.Core
 nuget Chiron
+nuget FSharp.Data

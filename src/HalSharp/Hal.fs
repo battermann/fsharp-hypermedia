@@ -1,14 +1,15 @@
-module HalSharp
+module Hal
 
 open System
 
-type Instance<'a> =
+type AbstractJsonObject<'a> =
     | Pure of 'a
-    | Instance of Map<string, Instance<'a>>
+    | Instance of Map<string, AbstractJsonObject<'a>>
     | String of string
-    | Array of Instance<'a> list
+    | Array of AbstractJsonObject<'a> list
     | Bool of bool
 
+// according to hal specification (https://tools.ietf.org/html/draft-kelly-json-hal-08)
 type Link = {
     href: string
     templated: bool option
@@ -23,7 +24,7 @@ type Link = {
 type Resource<'a> = {
     links: Map<string, Link list>
     embedded: Map<string, Resource<'a> list>
-    properties: Map<string, Instance<'a>>
+    properties: Map<string, AbstractJsonObject<'a>>
 }
 
 [<RequireQualifiedAccess>]
@@ -40,8 +41,8 @@ module internal Link =
         hreflang = None 
     }
 
-    let serializeSingleLink link : Instance<'a> =
-        Instance <| Map.ofList
+    let serializeSingleLink link : AbstractJsonObject<'a> =
+        Map.ofList
             [ yield ("href", String link.href)
               yield! match link.templated with Some b -> [ "templated", Bool b ] | _ -> []
               yield! match link.mediaType with Some mt -> [ "type", String mt ] | _ -> []
@@ -50,8 +51,9 @@ module internal Link =
               yield! match link.profile with Some prof -> [ "profile", String (prof.ToString()) ] | _ -> []
               yield! match link.title with Some title -> [ "title", String title ] | _ -> []
               yield! match link.hreflang with Some lang -> [ "hreflang", String lang ] | _ -> [] ]
+            |> Instance
 
-    let serialize (links: Map<string, Link list>) : Instance<'a> option =
+    let serialize (links: Map<string, Link list>) : AbstractJsonObject<'a> option =
         let serializeLinkList links =
             match links |> List.length with
             | 1 -> serializeSingleLink (links |> List.head)
@@ -74,14 +76,14 @@ module Resource =
         embedded = Map.empty
         properties = Map.empty
     }
-    let rec serialize resource : Instance<'a> =
+    let rec internal serialize resource =
         let merge (maps: Map<_,_> seq): Map<_,_> = 
-            Map.ofList <| List.concat (maps |> Seq.map Map.toList)
+            List.concat (maps |> Seq.map Map.toList) |> Map.ofList
         
         let embedded =
             let serializeEmbedded resources =
                 match resources |> List.length with
-                | 0 -> Instance <| Map.empty
+                | 0 -> Instance Map.empty
                 | 1 -> serialize (resources |> List.head)
                 | _ -> Array (resources |> List.map serialize)
 
@@ -103,5 +105,8 @@ module Resource =
         |> merge
         |> Instance
 
+    let toJson interpreter resource =
+        resource |> serialize |> interpreter
+
 [<assembly:System.Runtime.CompilerServices.InternalsVisibleTo ("halsharp.tests")>]
-()        
+()

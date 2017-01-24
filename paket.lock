@@ -13,4 +13,5 @@ NUGET
     FAKE (4.50)
     FParsec (1.0.2)
     FSharp.Core (4.0.0.1)
+    FSharp.Data (2.3.2)
     Mono.Cecil (0.9.6.4)
