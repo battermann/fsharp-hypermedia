@@ -30,6 +30,12 @@ type MaybeSingleton<'a> =
     | Singleton of 'a
     | Collection of 'a list
 
+module MaybeSingleton =
+    let map f maybeSingleton =
+        match maybeSingleton with
+        | Singleton x   -> Singleton (f x)
+        | Collection xs -> Collection (xs |> List.map f)
+
 /// A resource representation according to the HAL specification (https://tools.ietf.org/html/draft-kelly-json-hal-08).
 type Resource<'a> = {
     curies: Curies
@@ -37,6 +43,44 @@ type Resource<'a> = {
     embedded: Map<string, MaybeSingleton<Resource<'a>>>
     properties: Map<string, AbstractJsonObject<'a>>
 }
+
+[<RequireQualifiedAccess>]
+[<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
+module internal Curies =
+    let internal tryFindName (curies: Curies) (relation: string): string option =
+        let tryCreateUri str =
+            match Uri.TryCreate(str, UriKind.Absolute) with
+            | true, uri -> Some uri
+            | _         -> None
+
+        let matchUriWithTemplate (name: string, template: Uri) (uri: Uri): string option =
+            if template.Segments |> Array.length <> (uri.Segments |> Array.length) then 
+                None
+            else
+                Array.zip template.Segments uri.Segments
+                |> Array.tryFind (fst >> ((=) "%7Brel%7D"))
+                |> Option.map (snd >> sprintf "%s:%s" name)
+        
+        curies 
+        |> Map.toSeq 
+        |> Seq.map matchUriWithTemplate 
+        |> Seq.choose (fun tryMatch -> tryCreateUri relation |> Option.bind tryMatch)
+        |> Seq.tryHead
+
+    let internal replace (curies: Curies) (map: Map<string, MaybeSingleton<_>>) =
+        map
+        |> Map.toList
+        |> List.map (fun (relation, x) ->
+            match tryFindName curies relation with
+            | Some name -> name, x
+            | _         -> relation, x)
+        |> Map.ofList    
+
+    let rec replaceRelations curies resource =
+        { resource with 
+            links = replace curies resource.links
+            embedded = (replace curies resource.embedded) |> Map.map (fun _ emb -> emb |> MaybeSingleton.map (replaceRelations curies))
+        }
 
 [<RequireQualifiedAccess>]
 [<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
@@ -109,12 +153,14 @@ module Resource =
         let merge (maps: Map<_,_> seq): Map<_,_> = 
             List.concat (maps |> Seq.map Map.toList) |> Map.ofList
         
+        let withResolvedCuries = Curies.replaceRelations resource.curies resource
+            
         let embedded =        
             let embeddedMap = 
-                resource.embedded
+                withResolvedCuries.embedded
                 |> Map.map (fun rel res -> 
                     match res with
-                    | Singleton x     -> serialize x
+                    | Singleton x   -> serialize x
                     | Collection xs -> JArray (xs |> List.map serialize))
                 
             if embeddedMap |> Map.isEmpty then
@@ -123,7 +169,7 @@ module Resource =
                 Map.ofList [ "_embedded", embeddedMap |> JRecord ]
 
         let links = 
-            match Link.serialize resource.links resource.curies with
+            match Link.serialize withResolvedCuries.links resource.curies with
             | Some ls -> Map.ofList [ "_links", ls ]
             | _       -> Map.empty
 

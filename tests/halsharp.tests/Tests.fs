@@ -8,7 +8,6 @@ open Hal
 open ChironInterpreter
 
 // todo ensure that _links and _embedded are unique
-// implement curies
 
 let relUri path = Uri(path, UriKind.Relative)
 
@@ -25,7 +24,7 @@ let ``Curies`` =
         Resource.empty with
           links = Map.ofList [ "self", Singleton (Link.simple (relUri "/orders/123"))
                                "http://example.com/docs/rels/basket", Singleton (Link.simple (relUri "/baskets/98712"))
-                               "http://example.com/docs/rels/customer", Singleton (Link.simple (relUri "/customer/7809")) ]
+                               "http://example.com/docs/rels/customer", Singleton (Link.simple (relUri "/customers/7809")) ]
           properties = Map.ofList [ "total", JObject (Number 30M)
                                     "currency", JString "USD"
                                     "status", JString "shipped" ]
@@ -35,7 +34,7 @@ let ``Curies`` =
         Resource.empty with
           links = Map.ofList [ "self", Singleton (Link.simple (relUri "/orders/124"))
                                "http://example.com/docs/rels/basket", Singleton (Link.simple (relUri "/baskets/97213"))
-                               "http://example.com/docs/rels/customer", Singleton (Link.simple (relUri "/customer/12369")) ]
+                               "http://example.com/docs/rels/customer", Singleton (Link.simple (relUri "/customers/12369")) ]
           properties = Map.ofList [ "total", JObject (Number 20M)
                                     "currency", JString "USD"
                                     "status", JString "processing" ]
@@ -44,10 +43,10 @@ let ``Curies`` =
       let resource = {
         Resource.empty with
           links = Map.ofList [ "self", Singleton (Link.simple (relUri "/orders"))
-                               "next", Singleton (Link.simple (relUri "/orders?pager=2"))
+                               "next", Singleton (Link.simple (relUri "/orders?page=2"))
                                "http://example.com/docs/rels/find", Singleton ({ Link.simple (relUri "/orders{?id}") with templated = Some true })
                                "http://example.com/docs/rels/admin", Collection [ { Link.simple (relUri "/admins/2") with title = Some "Fred" }
-                                                                                  { Link.simple (relUri "/admins/5") with title = Some "KAte" } ] ]
+                                                                                  { Link.simple (relUri "/admins/5") with title = Some "Kate" } ] ]
           properties = Map.ofList [ "currentlyProcessing", JObject (Number 14M)
                                     "shippedToday", JObject (Number 20M) ]      
           embedded = Map.ofList [ "http://example.com/docs/rels/order", Collection [ order1; order2 ] ]
