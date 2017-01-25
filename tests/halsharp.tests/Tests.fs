@@ -14,11 +14,51 @@ let relUri path = Uri(path, UriKind.Relative)
 
 [<Tests>]
 let ``Curies`` =
+  testList "links" [
     testCase "add curies" <| fun _ ->
       Expect.equal 
-        ({ Resource.empty with curies = Map.ofList [ "foo", Uri "http://example.com/docs/rels" ] } |> Resource.serialize)
-        (JRecord (Map.ofList [ "_links", JRecord (Map.ofList ["curies", JArray [ JRecord (Map.ofList ["name", JString "foo"; "href", JString "http://example.com/docs/rels"; "templated", JBool true ])]])]))
+        ({ Resource.empty with curies = Map.ofList [ "foo", Uri "http://example.com/docs/rels/{rel}" ] } |> Resource.serialize)
+        (JRecord (Map.ofList [ "_links", JRecord (Map.ofList ["curies", JArray [ JRecord (Map.ofList ["name", JString "foo"; "href", JString "http://example.com/docs/rels/{rel}"; "templated", JBool true ])]])]))
         "curies should be added to the links" 
+    testCase "add curies, replace links recursively" <| fun _ ->
+      let order1 = {
+        Resource.empty with
+          links = Map.ofList [ "self", Singleton (Link.simple (relUri "/orders/123"))
+                               "http://example.com/docs/rels/basket", Singleton (Link.simple (relUri "/baskets/98712"))
+                               "http://example.com/docs/rels/customer", Singleton (Link.simple (relUri "/customer/7809")) ]
+          properties = Map.ofList [ "total", JObject (Number 30M)
+                                    "currency", JString "USD"
+                                    "status", JString "shipped" ]
+      }
+
+      let order2 = {
+        Resource.empty with
+          links = Map.ofList [ "self", Singleton (Link.simple (relUri "/orders/124"))
+                               "http://example.com/docs/rels/basket", Singleton (Link.simple (relUri "/baskets/97213"))
+                               "http://example.com/docs/rels/customer", Singleton (Link.simple (relUri "/customer/12369")) ]
+          properties = Map.ofList [ "total", JObject (Number 20M)
+                                    "currency", JString "USD"
+                                    "status", JString "processing" ]
+      }
+
+      let resource = {
+        Resource.empty with
+          links = Map.ofList [ "self", Singleton (Link.simple (relUri "/orders"))
+                               "next", Singleton (Link.simple (relUri "/orders?pager=2"))
+                               "http://example.com/docs/rels/find", Singleton ({ Link.simple (relUri "/orders{?id}") with templated = Some true })
+                               "http://example.com/docs/rels/admin", Collection [ { Link.simple (relUri "/admins/2") with title = Some "Fred" }
+                                                                                  { Link.simple (relUri "/admins/5") with title = Some "KAte" } ] ]
+          properties = Map.ofList [ "currentlyProcessing", JObject (Number 14M)
+                                    "shippedToday", JObject (Number 20M) ]      
+          embedded = Map.ofList [ "http://example.com/docs/rels/order", Collection [ order1; order2 ] ]
+          curies = Map.ofList [ "ea", Uri "http://example.com/docs/rels/{rel}" ]
+      }
+
+      Expect.equal 
+        (resource |> Resource.serialize |> interpret |> Json.format)
+        """{"_embedded":{"ea:order":[{"_links":{"ea:basket":{"href":"/baskets/98712"},"ea:customer":{"href":"/customers/7809"},"self":{"href":"/orders/123"}},"currency":"USD","status":"shipped","total":30},{"_links":{"ea:basket":{"href":"/baskets/97213"},"ea:customer":{"href":"/customers/12369"},"self":{"href":"/orders/124"}},"currency":"USD","status":"processing","total":20}]},"_links":{"curies":[{"href":"http://example.com/docs/rels/{rel}","name":"ea","templated":true}],"ea:admin":[{"href":"/admins/2","title":"Fred"},{"href":"/admins/5","title":"Kate"}],"ea:find":{"href":"/orders{?id}","templated":true},"next":{"href":"/orders?page=2"},"self":{"href":"/orders"}},"currentlyProcessing":14,"shippedToday":20}"""
+        "curies should be added to the links"         
+  ]
 
 [<Tests>]
 let ``Empty resource with ChironInterpreter`` =
