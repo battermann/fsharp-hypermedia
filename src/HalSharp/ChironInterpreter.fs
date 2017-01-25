@@ -1,11 +1,13 @@
+/// Contains the interpreter to transform an `AbstractJsonObject<Chiron.Json>` into a `Chiron.Json`.
 module ChironInterpreter
 
 open Chiron
 
+/// Transforms an `AbstractJsonObject<Chiron.Json>` into a `Chiron.Json`.
 let rec interpret (instance: Hal.AbstractJsonObject<Json>) : Json =
     match instance with
-    | Hal.Pure a       -> a
-    | Hal.Bool b       -> Bool b
-    | Hal.String s     -> String s
-    | Hal.Record map   -> Object (map |> Map.map (fun _ v -> interpret v))
-    | Hal.Array a      -> Array (a |> List.map interpret)
+    | Hal.JObject a    -> a
+    | Hal.JBool b       -> Bool b
+    | Hal.JString s     -> String s
+    | Hal.JRecord map   -> Object (map |> Map.map (fun _ v -> interpret v))
+    | Hal.JArray a      -> Array (a |> List.map interpret)

@@ -54,37 +54,37 @@ let ``Resource with ChironInterpreter`` =
   let coupon = {
     links = Map.empty
     embedded = Map.empty
-    properties = Map.ofList [ "type", String "dollarOff"
-                              "amount", String "10"
-                              "code", String "A0318A97" ]
+    properties = Map.ofList [ "type", JString "dollarOff"
+                              "amount", JString "10"
+                              "code", JString "A0318A97" ]
   }
 
   let shipping = {
     links = Map.ofList [ "self", [ Link.simple "/shipping/135451" ] ]
     embedded = Map.empty
-    properties = Map.ofList [ "first_name", String "Heman"
-                              "last_name", String "Radtke"
-                              "address", String "1234 Day St."
-                              "city", String "Los Angeles"
-                              "state", String "CA"
-                              "zipcode", String "90015"
-                              "country_iso", String "US" ]        
+    properties = Map.ofList [ "first_name", JString "Heman"
+                              "last_name", JString "Radtke"
+                              "address", JString "1234 Day St."
+                              "city", JString "Los Angeles"
+                              "state", JString "CA"
+                              "zipcode", JString "90015"
+                              "country_iso", JString "US" ]        
   }
 
   let billing = {
     links = Map.ofList [ "self", [ Link.simple "/billing/135451" ] ]
     embedded = Map.empty
-    properties = Map.ofList [ "first_name", String "Herman"
-                              "last_name", String "Radtke"
-                              "address", String "1234 Day St."
-                              "city", String "Los Angeles"
-                              "state", String "CA"
-                              "zipcode", String "90015"
-                              "country_iso", String "US"
-                              "card_number", String "1111"
-                              "card_type", String "mastercard"
-                              "card_exp_year", String "2015"
-                              "card_exp_month", String "01" ]        
+    properties = Map.ofList [ "first_name", JString "Herman"
+                              "last_name", JString "Radtke"
+                              "address", JString "1234 Day St."
+                              "city", JString "Los Angeles"
+                              "state", JString "CA"
+                              "zipcode", JString "90015"
+                              "country_iso", JString "US"
+                              "card_number", JString "1111"
+                              "card_type", JString "mastercard"
+                              "card_exp_year", JString "2015"
+                              "card_exp_month", JString "01" ]        
   }
 
   let eCommerceResource = {
@@ -98,10 +98,10 @@ let ``Resource with ChironInterpreter`` =
     embedded = Map.ofList [ "http://www.example.com/rels/coupon", [ coupon ]
                             "http://example.com/rels/shipping", [ shipping ]
                             "http://example.com/rels/billing", [ billing ] ]
-    properties = Map.ofList [ "subtotal", Pure (Number 49M)
-                              "tax", Pure (Number 0M)
-                              "freight", Pure (Number 5M)
-                              "total", Pure (Number 44M) ]
+    properties = Map.ofList [ "subtotal", JObject (Number 49M)
+                              "tax", JObject (Number 0M)
+                              "freight", JObject (Number 5M)
+                              "total", JObject (Number 44M) ]
   }
 
   let someOject =
@@ -155,8 +155,8 @@ let ``Resource with ChironInterpreter`` =
       let resource = {
         links = Map.empty
         embedded = Map.empty
-        properties = Map.ofList [ "currentlyProcessing", Pure (Number 14M)
-                                  "shippedToday", Pure (Number 20M) ]
+        properties = Map.ofList [ "currentlyProcessing", JObject (Number 14M)
+                                  "shippedToday", JObject (Number 20M) ]
       }
         
       Expect.equal 
@@ -168,7 +168,7 @@ let ``Resource with ChironInterpreter`` =
       let resource = {
         links = Map.empty
         embedded = Map.empty
-        properties = Map.ofList [ "thing", Pure someOject ]
+        properties = Map.ofList [ "thing", JObject someOject ]
       }
         
       Expect.equal 
@@ -182,7 +182,7 @@ let ``Resource with ChironInterpreter`` =
                              "next", [ Link.simple "/orders?page=2" ]
                            ]
         embedded = Map.empty
-        properties = Map.ofList [ "thing", Pure someOject ]
+        properties = Map.ofList [ "thing", JObject someOject ]
       }
 
       let resource = {
@@ -210,37 +210,37 @@ let ``Resource with FSharpDataInterpreter`` =
   let coupon = {
     links = Map.empty
     embedded = Map.empty
-    properties = Map.ofList [ "type", Pure <| JsonValue.String("dollarOff")
-                              "amount", Pure <| JsonValue.String("10")
-                              "code", Pure <| JsonValue.String("A0318A97") ]
+    properties = Map.ofList [ "type", JObject <| JsonValue.String("dollarOff")
+                              "amount", JObject <| JsonValue.String("10")
+                              "code", JObject <| JsonValue.String("A0318A97") ]
   }
 
   let shipping = {
     links = Map.ofList [ "self", [ Link.simple "/shipping/135451" ] ]
     embedded = Map.empty
-    properties = Map.ofList [ "first_name", Pure <| JsonValue.String("Heman")
-                              "last_name", Pure <| JsonValue.String("Radtke")
-                              "address", Pure <| JsonValue.String( "1234 Day St.")
-                              "city", Pure <| JsonValue.String( "Los Angeles")
-                              "state", Pure <| JsonValue.String( "CA")
-                              "zipcode", Pure <| JsonValue.String( "90015")
-                              "country_iso", Pure <| JsonValue.String( "US") ]        
+    properties = Map.ofList [ "first_name", JObject <| JsonValue.String("Heman")
+                              "last_name", JObject <| JsonValue.String("Radtke")
+                              "address", JObject <| JsonValue.String( "1234 Day St.")
+                              "city", JObject <| JsonValue.String( "Los Angeles")
+                              "state", JObject <| JsonValue.String( "CA")
+                              "zipcode", JObject <| JsonValue.String( "90015")
+                              "country_iso", JObject <| JsonValue.String( "US") ]        
   }
 
   let billing = {
     links = Map.ofList [ "self", [ Link.simple "/billing/135451" ] ]
     embedded = Map.empty
-    properties = Map.ofList [ "first_name", Pure <| JsonValue.String("Herman")
-                              "last_name", Pure <| JsonValue.String( "Radtke")
-                              "address", Pure <| JsonValue.String( "1234 Day St.")
-                              "city", Pure <| JsonValue.String( "Los Angeles")
-                              "state", Pure <| JsonValue.String( "CA")
-                              "zipcode", Pure <| JsonValue.String( "90015")
-                              "country_iso", Pure <| JsonValue.String( "US")
-                              "card_number", Pure <| JsonValue.String( "1111")
-                              "card_type", Pure <| JsonValue.String( "mastercard")
-                              "card_exp_year", Pure <| JsonValue.String( "2015")
-                              "card_exp_month", Pure <| JsonValue.String( "01") ]        
+    properties = Map.ofList [ "first_name", JObject <| JsonValue.String("Herman")
+                              "last_name", JObject <| JsonValue.String( "Radtke")
+                              "address", JObject <| JsonValue.String( "1234 Day St.")
+                              "city", JObject <| JsonValue.String( "Los Angeles")
+                              "state", JObject <| JsonValue.String( "CA")
+                              "zipcode", JObject <| JsonValue.String( "90015")
+                              "country_iso", JObject <| JsonValue.String( "US")
+                              "card_number", JObject <| JsonValue.String( "1111")
+                              "card_type", JObject <| JsonValue.String( "mastercard")
+                              "card_exp_year", JObject <| JsonValue.String( "2015")
+                              "card_exp_month", JObject <| JsonValue.String( "01") ]        
   }
 
   let eCommerceResource = {
@@ -254,10 +254,10 @@ let ``Resource with FSharpDataInterpreter`` =
     embedded = Map.ofList [ "http://www.example.com/rels/coupon", [ coupon ]
                             "http://example.com/rels/shipping", [ shipping ]
                             "http://example.com/rels/billing", [ billing ] ]
-    properties = Map.ofList [ "subtotal", Pure <| JsonValue.Number(49M)
-                              "tax", Pure <| JsonValue.Number(0M)
-                              "freight", Pure <| JsonValue.Number(5M)
-                              "total", Pure <| JsonValue.Number(44M) ]
+    properties = Map.ofList [ "subtotal", JObject <| JsonValue.Number(49M)
+                              "tax", JObject <| JsonValue.Number(0M)
+                              "freight", JObject <| JsonValue.Number(5M)
+                              "total", JObject <| JsonValue.Number(44M) ]
   }
   testCase "E-commerce example" <| fun _ ->
     Expect.equal 
