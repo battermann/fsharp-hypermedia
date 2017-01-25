@@ -24,10 +24,14 @@ type Link = {
     hreflang: string option
 }
 
+type MaybeSingleton<'a> =
+    | Singleton of 'a
+    | Collection of 'a list
+
 /// A resource representation according to the HAL specification (https://tools.ietf.org/html/draft-kelly-json-hal-08).
 type Resource<'a> = {
-    links: Map<string, Link list>
-    embedded: Map<string, Resource<'a> list>
+    links: Map<string, MaybeSingleton<Link>>
+    embedded: Map<string, MaybeSingleton<Resource<'a>>>
     properties: Map<string, AbstractJsonObject<'a>>
 }
 
@@ -57,19 +61,23 @@ module internal Link =
               yield! match link.hreflang with Some lang -> [ "hreflang", JString lang ] | _ -> [] ]
             |> JRecord
 
-    let serialize (links: Map<string, Link list>) : AbstractJsonObject<'a> option =
-        let serializeLinkList links =
-            match links |> List.length with
-            | 1 -> serializeSingleLink (links |> List.head)
-            | _ -> JArray (links |> List.map serializeSingleLink)
+    let serialize (links: Map<string, MaybeSingleton<Link>>) : AbstractJsonObject<'a> option =
+        let serializeLinkList = function
+            | Singleton l     -> serializeSingleLink l
+            | Collection ls -> JArray (ls |> List.map serializeSingleLink)
 
-        let nonEmptyLinks = links |> Map.filter (fun _ linkList -> not (List.isEmpty linkList))
+        let nonEmptyLinks = 
+            links 
+            |> Map.filter (fun _ l -> 
+                match l with 
+                | Singleton _     -> true
+                | Collection xs -> not (xs |> List.isEmpty))
 
         if nonEmptyLinks |> Map.isEmpty then
             None
         else
             nonEmptyLinks
-            |> Map.map (fun _ linkList -> serializeLinkList linkList)
+            |> Map.map (fun _ l -> serializeLinkList l)
             |> JRecord
             |> Some
 
@@ -88,16 +96,13 @@ module Resource =
         let merge (maps: Map<_,_> seq): Map<_,_> = 
             List.concat (maps |> Seq.map Map.toList) |> Map.ofList
         
-        let embedded =
-            let serializeEmbedded resources =
-                match resources |> List.length with
-                | 0 -> JRecord Map.empty
-                | 1 -> serialize (resources |> List.head)
-                | _ -> JArray (resources |> List.map serialize)
-
+        let embedded =        
             let embeddedMap = 
                 resource.embedded
-                |> Map.map (fun rel res -> serializeEmbedded res)
+                |> Map.map (fun rel res -> 
+                    match res with
+                    | Singleton x     -> serialize x
+                    | Collection xs -> JArray (xs |> List.map serialize))
                 
             if embeddedMap |> Map.isEmpty then
                 Map.empty

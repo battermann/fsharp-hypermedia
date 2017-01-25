@@ -60,7 +60,7 @@ let ``Resource with ChironInterpreter`` =
   }
 
   let shipping = {
-    links = Map.ofList [ "self", [ Link.simple "/shipping/135451" ] ]
+    links = Map.ofList [ "self", Singleton <| Link.simple "/shipping/135451" ]
     embedded = Map.empty
     properties = Map.ofList [ "first_name", JString "Heman"
                               "last_name", JString "Radtke"
@@ -72,7 +72,7 @@ let ``Resource with ChironInterpreter`` =
   }
 
   let billing = {
-    links = Map.ofList [ "self", [ Link.simple "/billing/135451" ] ]
+    links = Map.ofList [ "self", Singleton (Link.simple "/billing/135451") ]
     embedded = Map.empty
     properties = Map.ofList [ "first_name", JString "Herman"
                               "last_name", JString "Radtke"
@@ -88,16 +88,16 @@ let ``Resource with ChironInterpreter`` =
   }
 
   let eCommerceResource = {
-    links = Map.ofList [ "self", [ Link.simple "/payment" ]
-                         "http://example.com/rels/billing", [ Link.simple "/member/109087/billing" ]
-                         "http://example.com/rels/shipping", [ Link.simple "/member/109087/shipping" ]
-                         "http://example.com/rels/payment/coupon", [ Link.simple "/payment/coupon" ]
-                         "http://example.com/rels/payment/billing", [ Link.simple "/payment/billing" ]
-                         "http://example.com/rels/payment/shipping", [ Link.simple "/payment/shipping" ]
+    links = Map.ofList [ "self", Singleton <| Link.simple "/payment" 
+                         "http://example.com/rels/billing", Singleton <| Link.simple "/member/109087/billing"
+                         "http://example.com/rels/shipping", Singleton <| Link.simple "/member/109087/shipping"
+                         "http://example.com/rels/payment/coupon", Singleton <| Link.simple "/payment/coupon"
+                         "http://example.com/rels/payment/billing", Singleton <| Link.simple "/payment/billing"
+                         "http://example.com/rels/payment/shipping", Singleton <| Link.simple "/payment/shipping"
                        ]
-    embedded = Map.ofList [ "http://www.example.com/rels/coupon", [ coupon ]
-                            "http://example.com/rels/shipping", [ shipping ]
-                            "http://example.com/rels/billing", [ billing ] ]
+    embedded = Map.ofList [ "http://www.example.com/rels/coupon", Singleton <| coupon
+                            "http://example.com/rels/shipping", Singleton <| shipping
+                            "http://example.com/rels/billing", Singleton <| billing ]
     properties = Map.ofList [ "subtotal", JObject (Number 49M)
                               "tax", JObject (Number 0M)
                               "freight", JObject (Number 5M)
@@ -113,8 +113,8 @@ let ``Resource with ChironInterpreter`` =
   testList "resource" [   
     testCase "resource with links to json" <| fun _ ->
       let resource = {
-        links = Map.ofList [ "self", [ Link.simple "/orders" ]
-                             "next", [ Link.simple "/orders?page=2" ]
+        links = Map.ofList [ "self", Singleton <| Link.simple "/orders"
+                             "next", Singleton <| Link.simple "/orders?page=2"
                            ]
         embedded = Map.empty
         properties = Map.empty
@@ -127,7 +127,7 @@ let ``Resource with ChironInterpreter`` =
 
     testCase "resource with links with empty link list" <| fun _ ->
       let resource = {
-        links = Map.ofList [ "self", [ ] ]
+        links = Map.ofList [ "self", Collection [ ] ]
         embedded = Map.empty
         properties = Map.empty
       }
@@ -139,9 +139,10 @@ let ``Resource with ChironInterpreter`` =
 
     testCase "resource with a link with multiple links" <| fun _ ->
       let resource = {
-        links = Map.ofList [ "http://booklistapi.com/rels/authors", [ Link.simple "/author/4554"
-                                                                      Link.simple "/author/5758"
-                                                                      Link.simple "/author/6853" ] ]        
+        links = Map.ofList 
+          [ "http://booklistapi.com/rels/authors", Collection [ Link.simple "/author/4554"
+                                                                Link.simple "/author/5758"
+                                                                Link.simple "/author/6853" ] ]        
         embedded = Map.empty
         properties = Map.empty
       }
@@ -178,8 +179,8 @@ let ``Resource with ChironInterpreter`` =
 
     testCase "resource with embedded" <| fun _ ->
       let embedded = {
-        links = Map.ofList [ "self", [ Link.simple "/orders" ]
-                             "next", [ Link.simple "/orders?page=2" ]
+        links = Map.ofList [ "self", Singleton <| Link.simple "/orders"
+                             "next", Singleton <| Link.simple "/orders?page=2"
                            ]
         embedded = Map.empty
         properties = Map.ofList [ "thing", JObject someOject ]
@@ -187,7 +188,7 @@ let ``Resource with ChironInterpreter`` =
 
       let resource = {
         links = Map.empty
-        embedded = Map.ofList [ "thing", [ embedded; embedded ] ]
+        embedded = Map.ofList [ "thing", Collection [ embedded; embedded ] ]
         properties = Map.empty
       }
         
@@ -216,7 +217,7 @@ let ``Resource with FSharpDataInterpreter`` =
   }
 
   let shipping = {
-    links = Map.ofList [ "self", [ Link.simple "/shipping/135451" ] ]
+    links = Map.ofList [ "self", Singleton <| Link.simple "/shipping/135451" ]
     embedded = Map.empty
     properties = Map.ofList [ "first_name", JObject <| JsonValue.String("Heman")
                               "last_name", JObject <| JsonValue.String("Radtke")
@@ -228,7 +229,7 @@ let ``Resource with FSharpDataInterpreter`` =
   }
 
   let billing = {
-    links = Map.ofList [ "self", [ Link.simple "/billing/135451" ] ]
+    links = Map.ofList [ "self", Singleton <| Link.simple "/billing/135451" ]
     embedded = Map.empty
     properties = Map.ofList [ "first_name", JObject <| JsonValue.String("Herman")
                               "last_name", JObject <| JsonValue.String( "Radtke")
@@ -244,16 +245,16 @@ let ``Resource with FSharpDataInterpreter`` =
   }
 
   let eCommerceResource = {
-    links = Map.ofList [ "self", [ Link.simple "/payment" ]
-                         "http://example.com/rels/billing", [ Link.simple "/member/109087/billing" ]
-                         "http://example.com/rels/shipping", [ Link.simple "/member/109087/shipping" ]
-                         "http://example.com/rels/payment/coupon", [ Link.simple "/payment/coupon" ]
-                         "http://example.com/rels/payment/billing", [ Link.simple "/payment/billing" ]
-                         "http://example.com/rels/payment/shipping", [ Link.simple "/payment/shipping" ]
+    links = Map.ofList [ "self", Singleton <| Link.simple "/payment"
+                         "http://example.com/rels/billing", Singleton <| Link.simple "/member/109087/billing"
+                         "http://example.com/rels/shipping", Singleton <|Link.simple "/member/109087/shipping"
+                         "http://example.com/rels/payment/coupon", Singleton <|Link.simple "/payment/coupon"
+                         "http://example.com/rels/payment/billing", Singleton <|Link.simple "/payment/billing"
+                         "http://example.com/rels/payment/shipping", Singleton <|Link.simple "/payment/shipping"
                        ]
-    embedded = Map.ofList [ "http://www.example.com/rels/coupon", [ coupon ]
-                            "http://example.com/rels/shipping", [ shipping ]
-                            "http://example.com/rels/billing", [ billing ] ]
+    embedded = Map.ofList [ "http://www.example.com/rels/coupon", Singleton <|  coupon
+                            "http://example.com/rels/shipping", Singleton <| shipping
+                            "http://example.com/rels/billing", Singleton <| billing ]
     properties = Map.ofList [ "subtotal", JObject <| JsonValue.Number(49M)
                               "tax", JObject <| JsonValue.Number(0M)
                               "freight", JObject <| JsonValue.Number(5M)
