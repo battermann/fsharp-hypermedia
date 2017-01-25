@@ -14,7 +14,7 @@ type AbstractJsonObject<'a> =
 
 /// A link representation according to the HAL specification (https://tools.ietf.org/html/draft-kelly-json-hal-08).
 type Link = {
-    href: string
+    href: Uri
     templated: bool option
     mediaType: string option
     deprication: Uri option
@@ -24,12 +24,15 @@ type Link = {
     hreflang: string option
 }
 
+type Curies = Map<string, Uri>
+
 type MaybeSingleton<'a> =
     | Singleton of 'a
     | Collection of 'a list
 
 /// A resource representation according to the HAL specification (https://tools.ietf.org/html/draft-kelly-json-hal-08).
 type Resource<'a> = {
+    curies: Curies
     links: Map<string, MaybeSingleton<Link>>
     embedded: Map<string, MaybeSingleton<Resource<'a>>>
     properties: Map<string, AbstractJsonObject<'a>>
@@ -49,9 +52,9 @@ module internal Link =
         hreflang = None 
     }
 
-    let serializeSingleLink link : AbstractJsonObject<'a> =
+    let serializeSingleLink (link: Link) : AbstractJsonObject<'a> =
         Map.ofList
-            [ yield ("href", JString link.href)
+            [ yield ("href", JString (string link.href))
               yield! match link.templated with Some b -> [ "templated", JBool b ] | _ -> []
               yield! match link.mediaType with Some mt -> [ "type", JString mt ] | _ -> []
               yield! match link.deprication with Some dep -> [ "deprication", JString (dep.ToString()) ] | _ -> []
@@ -61,13 +64,22 @@ module internal Link =
               yield! match link.hreflang with Some lang -> [ "hreflang", JString lang ] | _ -> [] ]
             |> JRecord
 
-    let serialize (links: Map<string, MaybeSingleton<Link>>) : AbstractJsonObject<'a> option =
+    let serialize (links: Map<string, MaybeSingleton<Link>>) (curies: Curies) : AbstractJsonObject<'a> option =
+
+        let linksWithCuries =
+            curies 
+            |> Map.toList 
+            |> List.map (fun (name, href) -> { simple href with name = Some name; templated = Some true })
+            |> Collection
+            |> fun x -> "curies", x
+            |> links.Add
+
         let serializeLinkList = function
-            | Singleton l     -> serializeSingleLink l
+            | Singleton l   -> serializeSingleLink l
             | Collection ls -> JArray (ls |> List.map serializeSingleLink)
 
         let nonEmptyLinks = 
-            links 
+            linksWithCuries 
             |> Map.filter (fun _ l -> 
                 match l with 
                 | Singleton _     -> true
@@ -87,6 +99,7 @@ module Resource =
 
     /// Returns an empty resource object the represents a valid HAL resource.
     let empty = {
+        curies = Map.empty
         links = Map.empty
         embedded = Map.empty
         properties = Map.empty
@@ -110,7 +123,7 @@ module Resource =
                 Map.ofList [ "_embedded", embeddedMap |> JRecord ]
 
         let links = 
-            match Link.serialize resource.links with
+            match Link.serialize resource.links resource.curies with
             | Some ls -> Map.ofList [ "_links", ls ]
             | _       -> Map.empty
 
