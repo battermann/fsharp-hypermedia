@@ -16,11 +16,11 @@ Define [HAL resource](http://stateless.co/hal_specification.html) representation
 Create instances of the response body models:
 
 ```fsharp
-type Payment = {
-    subtotal: decimal
-    tax: decimal
-    freight: decimal
-    total: decimal
+let payment = {
+    subtotal = 49m
+    tax = 0m
+    freight = 5m
+    total = 44m
 }
 
 let coupon = {
