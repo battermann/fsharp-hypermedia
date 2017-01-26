@@ -207,25 +207,25 @@ let ``Resource with ChironInterpreter`` =
         """{"currentlyProcessing":14,"shippedToday":20}""" 
         "should return resource object with two properties"      
 
-    testCase "resource with payload" <| fun _ ->
+    testCase "ignore payload" <| fun _ ->
       let resource = {
         Resource.empty with
           properties = Map.ofList [ "currentlyProcessing", JObject (Number 14M)
                                     "shippedToday", JObject (Number 20M) ]        
-          payload = JRecord (Map.ofList [ "fourteen", JObject (Number 14M) ]) |> Some
+          payload = JRecord (Map.ofList [ "fourteen", JObject (Number 14M) ]) :> obj |> Some
       }
         
       Expect.equal 
-        (resource |> Resource.serialize |> ChironInterpreter.interpret|> Json.format) 
-        """{"currentlyProcessing":14,"fourteen":14,"shippedToday":20}""" 
-        "should return resource object with two properties"     
+        (resource |> Resource.serialize |> ChironInterpreter.interpret |> Json.format) 
+        """{"currentlyProcessing":14,"shippedToday":20}""" 
+        "should return resource object with two properties"            
 
     testCase "resource with invalid payload" <| fun _ ->
       let resource = {
         Resource.empty with
           properties = Map.ofList [ "currentlyProcessing", JObject (Number 14M)
                                     "shippedToday", JObject (Number 20M) ]        
-          payload = JArray [ JObject (Number 14M) ] |> Some
+          payload = JArray [ JObject (Number 14M) ] :> obj |> Some
       }
         
       Expect.equal 
@@ -407,7 +407,7 @@ let ``Json.NET`` =
     testCase "resource with payload" <| fun _ ->
       let resource = {
           Resource.empty with
-            payload = { name = "John"; age = 42 } :> obj |> JObject |> Some
+            payload = { name = "John"; age = 42 } :> obj |> Some
         }    
       Expect.equal
         (resource |> Resource.toJson ObjectInterpreter.interpret |> JsonConvert.SerializeObject) 
@@ -417,12 +417,12 @@ let ``Json.NET`` =
       let person = { name = "Jane"; age = 32 }
       let resource = {
           Resource.empty with
-            payload = { name = "John"; age = 42 } :> obj |> JObject |> Some
+            payload = { name = "John"; age = 42 } :> obj |> Some
         }
 
       let resourceWithEmbedded = {
         Resource.empty with
-          payload = person :> obj |> JObject |> Some
+          payload = person :> obj |> Some
           embedded = Map.ofList [ "john", Singleton resource ]
       }
       Expect.equal
@@ -434,7 +434,7 @@ let ``Json.NET`` =
           Resource.empty with
             properties = Map.ofList [ "total", JObject <| (42M :> obj)
                                       "foo", JObject <| ("bar" :> obj) ]
-            payload = { name = "John"; age = 42 } :> obj |> JObject |> Some
+            payload = { name = "John"; age = 42 } :> obj |> Some
         }    
       Expect.equal
         (resource |> Resource.toJson ObjectInterpreter.interpret |> JsonConvert.SerializeObject) 
@@ -443,7 +443,7 @@ let ``Json.NET`` =
     testCase "resource with invalid payload" <| fun _ ->
       let resource = {
           Resource.empty with
-            payload = [1;2;3] :> obj |> JObject |> Some
+            payload = [1;2;3] :> obj |> Some
         }    
       Expect.equal
         (resource |> Resource.toJson ObjectInterpreter.interpret |> JsonConvert.SerializeObject) 

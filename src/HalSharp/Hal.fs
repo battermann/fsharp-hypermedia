@@ -6,25 +6,6 @@ open System
 open System.Reflection
 open Microsoft.FSharp.Reflection
 
-let tryToMap(x: 'T) =
-    let objectToMap(object: obj) =
-        x.GetType().GetProperties(BindingFlags.DeclaredOnly ||| BindingFlags.Public ||| BindingFlags.Instance) 
-        |> Array.map (fun prop -> prop.Name, prop.GetValue(x, null))
-        |> Map.ofArray
-
-    let recordToMap (record:'T) = 
-        [ for p in FSharpType.GetRecordFields(typeof<'T>) ->
-            p.Name, p.GetValue(record) ]
-        |> Map.ofSeq
-
-    try
-        if FSharp.Reflection.FSharpType.IsRecord(typeof<'T>) then
-            x |> recordToMap
-        else
-            x |> objectToMap
-    with
-    | _ -> Map.empty
-
 /// Represents a minimal generic Json object to describe a HAL resource.
 type AbstractJsonObject<'a> =
     | JObject of 'a
@@ -63,7 +44,7 @@ type Resource<'a> = {
     links: Map<string, MaybeSingleton<Link>>
     embedded: Map<string, MaybeSingleton<Resource<'a>>>
     properties: Map<string, AbstractJsonObject<'a>>
-    payload: AbstractJsonObject<'a> option
+    payload: obj option
 }
 
 [<RequireQualifiedAccess>]
@@ -172,6 +153,25 @@ module Resource =
         payload = None
     }
 
+    let internal tryToMap(x: 'T) =
+        let objectToMap(object: obj) =
+            x.GetType().GetProperties(BindingFlags.DeclaredOnly ||| BindingFlags.Public ||| BindingFlags.Instance) 
+            |> Array.map (fun prop -> prop.Name, prop.GetValue(x, null))
+            |> Map.ofArray
+
+        let recordToMap (record:'T) = 
+            [ for p in FSharpType.GetRecordFields(typeof<'T>) ->
+                p.Name, p.GetValue(record) ]
+            |> Map.ofSeq
+
+        try
+            if FSharp.Reflection.FSharpType.IsRecord(typeof<'T>) then
+                x |> recordToMap
+            else
+                x |> objectToMap
+        with
+        | _ -> Map.empty    
+
     let rec internal serialize (resource: Resource<'a>) : AbstractJsonObject<'a> =
         let merge (maps: Map<_,_> seq): Map<_,_> = 
             List.concat (maps |> Seq.map Map.toList) |> Map.ofList
@@ -200,14 +200,10 @@ module Resource =
             match resource.payload with
             | Some pl ->
                 let payload =
-                    match pl with
-                    | JRecord x -> x
-                    | JObject x  ->
-                        try
-                            x |> tryToMap |> Map.map (fun _ v -> JObject (v :?> 'a))
-                        with
-                        | _ -> Map.empty
-                    | _ -> Map.empty 
+                    try
+                        pl |> tryToMap |> Map.map (fun _ v -> JObject (v :?> 'a))
+                    with
+                    | _ -> Map.empty
                 merge [ resource.properties; payload ]
             | _ -> resource.properties
 
