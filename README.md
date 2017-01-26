@@ -15,6 +15,13 @@ Define a HAL resource representations in F# and convert it to JSON.
 Create instances of the response body models:
 
 ```fsharp
+type Payment = {
+    subtotal: decimal
+    tax: decimal
+    freight: decimal
+    total: decimal
+}
+
 let coupon = {
     ``type`` = "dollarOff"
     amount = 10m
