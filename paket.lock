@@ -15,3 +15,4 @@ NUGET
     FSharp.Core (4.0.0.1)
     FSharp.Data (2.3.2)
     Mono.Cecil (0.9.6.4)
+    Newtonsoft.Json (9.0.1)

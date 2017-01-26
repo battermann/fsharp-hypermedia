@@ -2,3 +2,4 @@ FSharp.Core
 Expecto
 Chiron
 FSharp.Data
+Newtonsoft.Json
