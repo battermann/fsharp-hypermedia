@@ -53,7 +53,7 @@ let ``Curies`` =
       }
 
       Expect.equal 
-        (resource |> Resource.serialize |> ChironInterpreter.interpret|> Json.format)
+        (resource |> ChironInterpreter.toJson|> Json.format)
         """{"_embedded":{"ea:order":[{"_links":{"ea:basket":{"href":"/baskets/98712"},"ea:customer":{"href":"/customers/7809"},"self":{"href":"/orders/123"}},"currency":"USD","status":"shipped","total":30},{"_links":{"ea:basket":{"href":"/baskets/97213"},"ea:customer":{"href":"/customers/12369"},"self":{"href":"/orders/124"}},"currency":"USD","status":"processing","total":20}]},"_links":{"curies":[{"href":"http://example.com/docs/rels/{rel}","name":"ea","templated":true}],"ea:admin":[{"href":"/admins/2","title":"Fred"},{"href":"/admins/5","title":"Kate"}],"ea:find":{"href":"/orders{?id}","templated":true},"next":{"href":"/orders?page=2"},"self":{"href":"/orders"}},"currentlyProcessing":14,"shippedToday":20}"""
         "curies should be added to the links"         
   ]
@@ -91,7 +91,7 @@ let ``Link with ChironInterpreter`` =
              hreflang = Some "de-de"
       }
       Expect.equal 
-        (link |> Link.serializeSingleLink |> ChironInterpreter.interpret|> Json.format) 
+        (link |> Link.serializeSingleLink |> ChironInterpreter.interpret |> Json.format) 
         """{"deprication":"http://example.com/deprications/foo","href":"/orders/{id}","hreflang":"de-de","name":"j39fh23hf","profile":"http://example.com/profiles/foo","templated":true,"title":"Order","type":"application/json"}""" 
         "should return link object with href and templated attribute"        
   ]
@@ -166,7 +166,7 @@ let ``Resource with ChironInterpreter`` =
                                "next", Singleton <| Link.simple (relUri "/orders?page=2") ]
       }
       Expect.equal 
-        (resource |> Resource.serialize |> ChironInterpreter.interpret|> Json.format) 
+        (resource |> ChironInterpreter.toJson |> Json.format) 
         """{"_links":{"next":{"href":"/orders?page=2"},"self":{"href":"/orders"}}}""" 
         "should return resource object with a _links object"   
 
@@ -177,7 +177,7 @@ let ``Resource with ChironInterpreter`` =
       }
         
       Expect.equal 
-        (resource |> Resource.serialize |> ChironInterpreter.interpret|> Json.format) 
+        (resource |> ChironInterpreter.toJson|> Json.format) 
         """{}""" 
         "should return resource object without a _links property"
 
@@ -191,7 +191,7 @@ let ``Resource with ChironInterpreter`` =
       }
         
       Expect.equal 
-        (resource |> Resource.serialize |> ChironInterpreter.interpret|> Json.format) 
+        (resource |> ChironInterpreter.toJson|> Json.format) 
         """{"_links":{"http://booklistapi.com/rels/authors":[{"href":"/author/4554"},{"href":"/author/5758"},{"href":"/author/6853"}]}}""" 
         "should return resource object a link relation with multiple links"            
 
@@ -203,7 +203,7 @@ let ``Resource with ChironInterpreter`` =
       }
         
       Expect.equal 
-        (resource |> Resource.serialize |> ChironInterpreter.interpret|> Json.format) 
+        (resource |> ChironInterpreter.toJson|> Json.format) 
         """{"currentlyProcessing":14,"shippedToday":20}""" 
         "should return resource object with two properties"      
 
@@ -216,9 +216,9 @@ let ``Resource with ChironInterpreter`` =
       }
         
       Expect.equal 
-        (resource |> Resource.serialize |> ChironInterpreter.interpret |> Json.format) 
+        (resource |> ChironInterpreter.toJson |> Json.format) 
         """{"currentlyProcessing":14,"shippedToday":20}""" 
-        "should return resource object with two properties"            
+        "should return resource object with two properties"           
 
     testCase "resource with invalid payload" <| fun _ ->
       let resource = {
@@ -229,7 +229,7 @@ let ``Resource with ChironInterpreter`` =
       }
         
       Expect.equal 
-        (resource |> Resource.serialize |> ChironInterpreter.interpret|> Json.format) 
+        (resource |> ChironInterpreter.toJson|> Json.format) 
         """{"currentlyProcessing":14,"shippedToday":20}""" 
         "should return resource object with two properties"             
 
@@ -240,7 +240,7 @@ let ``Resource with ChironInterpreter`` =
       }
         
       Expect.equal 
-        (resource |> Resource.serialize |> ChironInterpreter.interpret|> Json.format) 
+        (resource |> ChironInterpreter.toJson|> Json.format) 
         """{"thing":{"json":{"hello":"world"},"number":42,"string":"hello"}}""" 
         "should return resource object with property with json"  
 
@@ -259,7 +259,7 @@ let ``Resource with ChironInterpreter`` =
       }
         
       Expect.equal 
-        (resource |> Resource.serialize |> ChironInterpreter.interpret|> Json.format) 
+        (resource |> ChironInterpreter.toJson|> Json.format) 
         """{"_embedded":{"thing":[{"_links":{"next":{"href":"/orders?page=2"},"self":{"href":"/orders"}},"thing":{"json":{"hello":"world"},"number":42,"string":"hello"}},{"_links":{"next":{"href":"/orders?page=2"},"self":{"href":"/orders"}},"thing":{"json":{"hello":"world"},"number":42,"string":"hello"}}]}}""" 
         "should return resource object with an embedded resource"      
 
@@ -328,7 +328,7 @@ let ``Resource with FSharpDataInterpreter`` =
   }
   testCase "E-commerce example" <| fun _ ->
     Expect.equal 
-      (eCommerceResource |> Resource.serialize |> FSharpDataIntepreter.interpret |> fun x -> x.ToString(JsonSaveOptions.DisableFormatting)) 
+      (eCommerceResource |> FSharpDataIntepreter.toJson |> fun x -> x.ToString(JsonSaveOptions.DisableFormatting)) 
       """{"_embedded":{"http://example.com/rels/billing":{"_links":{"self":{"href":"/billing/135451"}},"address":"1234 Day St.","card_exp_month":"01","card_exp_year":"2015","card_number":"1111","card_type":"mastercard","city":"Los Angeles","country_iso":"US","first_name":"Herman","last_name":"Radtke","state":"CA","zipcode":"90015"},"http://example.com/rels/shipping":{"_links":{"self":{"href":"/shipping/135451"}},"address":"1234 Day St.","city":"Los Angeles","country_iso":"US","first_name":"Heman","last_name":"Radtke","state":"CA","zipcode":"90015"},"http://www.example.com/rels/coupon":{"amount":"10","code":"A0318A97","type":"dollarOff"}},"_links":{"http://example.com/rels/billing":{"href":"/member/109087/billing"},"http://example.com/rels/payment/billing":{"href":"/payment/billing"},"http://example.com/rels/payment/coupon":{"href":"/payment/coupon"},"http://example.com/rels/payment/shipping":{"href":"/payment/shipping"},"http://example.com/rels/shipping":{"href":"/member/109087/shipping"},"self":{"href":"/payment"}},"freight":5,"subtotal":49,"tax":0,"total":44}""" 
       "should return resource object corresponding to correct e-commerce example"
 
@@ -344,7 +344,7 @@ let ``Json.NET`` =
   testList "json.net" [
     testCase "empty resource" <| fun _ ->
       Expect.equal 
-        (Resource.empty |> Resource.toJson ObjectInterpreter.interpret |> JsonConvert.SerializeObject) 
+        (Resource.empty |> ObjectInterpreter.toJson |> JsonConvert.SerializeObject) 
         """{}""" 
         "should return an empty resource"
     testCase "resource" <| fun _ ->
@@ -401,7 +401,7 @@ let ``Json.NET`` =
                                     "total", JObject <| (44M :> obj) ]
       }    
       Expect.equal 
-        (eCommerceResource |> Resource.toJson ObjectInterpreter.interpret |> JsonConvert.SerializeObject) 
+        (eCommerceResource |> ObjectInterpreter.toJson |> JsonConvert.SerializeObject) 
         """{"_embedded":{"http://example.com/rels/billing":{"_links":{"self":{"href":"/billing/135451"}},"address":"1234 Day St.","card_exp_month":"01","card_exp_year":"2015","card_number":"1111","card_type":"mastercard","city":"Los Angeles","country_iso":"US","first_name":"Herman","last_name":"Radtke","state":"CA","zipcode":"90015"},"http://example.com/rels/shipping":{"_links":{"self":{"href":"/shipping/135451"}},"address":"1234 Day St.","city":"Los Angeles","country_iso":"US","first_name":"Heman","last_name":"Radtke","state":"CA","zipcode":"90015"},"http://www.example.com/rels/coupon":{"amount":"10","code":"A0318A97","type":"dollarOff"}},"_links":{"http://example.com/rels/billing":{"href":"/member/109087/billing"},"http://example.com/rels/payment/billing":{"href":"/payment/billing"},"http://example.com/rels/payment/coupon":{"href":"/payment/coupon"},"http://example.com/rels/payment/shipping":{"href":"/payment/shipping"},"http://example.com/rels/shipping":{"href":"/member/109087/shipping"},"self":{"href":"/payment"}},"freight":5.0,"subtotal":49.0,"tax":0.0,"total":44.0}""" 
         "should return resource object corresponding to correct e-commerce example"
     testCase "resource with payload" <| fun _ ->
@@ -410,7 +410,7 @@ let ``Json.NET`` =
             payload = { name = "John"; age = 42 } :> obj |> Some
         }    
       Expect.equal
-        (resource |> Resource.toJson ObjectInterpreter.interpret |> JsonConvert.SerializeObject) 
+        (resource |> ObjectInterpreter.toJson |> JsonConvert.SerializeObject) 
         """{"age":42,"name":"John"}""" 
         "should return an empty resource"
     testCase "resource with embedded with payload" <| fun _ ->
@@ -426,7 +426,7 @@ let ``Json.NET`` =
           embedded = Map.ofList [ "john", Singleton resource ]
       }
       Expect.equal
-        (resourceWithEmbedded |> Resource.toJson ObjectInterpreter.interpret |> JsonConvert.SerializeObject) 
+        (resourceWithEmbedded |> ObjectInterpreter.toJson |> JsonConvert.SerializeObject) 
         """{"_embedded":{"john":{"age":42,"name":"John"}},"age":32,"name":"Jane"}""" 
         "should return an empty resource"                
     testCase "resource with payload and properties" <| fun _ ->
@@ -437,7 +437,7 @@ let ``Json.NET`` =
             payload = { name = "John"; age = 42 } :> obj |> Some
         }    
       Expect.equal
-        (resource |> Resource.toJson ObjectInterpreter.interpret |> JsonConvert.SerializeObject) 
+        (resource |> ObjectInterpreter.toJson |> JsonConvert.SerializeObject) 
         """{"age":42,"foo":"bar","name":"John","total":42.0}""" 
         "should return an empty resource"          
     testCase "resource with invalid payload" <| fun _ ->
@@ -446,7 +446,7 @@ let ``Json.NET`` =
             payload = [1;2;3] :> obj |> Some
         }    
       Expect.equal
-        (resource |> Resource.toJson ObjectInterpreter.interpret |> JsonConvert.SerializeObject) 
+        (resource |> ObjectInterpreter.toJson |> JsonConvert.SerializeObject) 
         """{}""" 
         "should return an empty resource"                
   ]

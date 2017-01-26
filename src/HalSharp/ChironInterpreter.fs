@@ -11,3 +11,6 @@ let rec interpret (instance: Hal.AbstractJsonObject<Json>) : Json =
     | Hal.JString s     -> String s
     | Hal.JRecord map   -> Object (map |> Map.map (fun _ v -> interpret v))
     | Hal.JArray a      -> Array (a |> List.map interpret)
+
+/// Serializes a HAL resource as `Chiron.Json`
+let toJson resource = Hal.Resource.toJson interpret resource    

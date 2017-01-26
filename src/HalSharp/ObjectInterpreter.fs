@@ -9,3 +9,6 @@ let rec interpret (instance: Hal.AbstractJsonObject<obj>) : obj =
     | Hal.JString s     -> s :> obj
     | Hal.JRecord map   -> map |> Map.map (fun _ v -> interpret v) :> obj
     | Hal.JArray a      -> a |> List.map interpret :> obj
+
+/// Serializes a HAL resource as `obj`
+let toJson resource = Hal.Resource.toJson interpret resource    
