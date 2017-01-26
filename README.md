@@ -1,58 +1,20 @@
-#load "src/HalSharp/Hal.fs"
-#load "src/HalSharp/ObjectInterpreter.fs"
-#load "paket-files/include-scripts/net40/include.newtonsoft.json.fsx"
+# F# JSON support for Hypertext Application Language (HAL) media type
 
-open System
-open Newtonsoft.Json
-open Hal
-open Resource
+This is a first, raw version.
 
-let relUri path = Uri(path, UriKind.Relative)
+Define a HAL resource representations in F# and convert it to JSON.
 
-type Payment = {
-    subtotal: decimal
-    tax: decimal
-    freight: decimal
-    total: decimal
-}
+* Idiomatic support for F#
+* Supports multiple serializers / formats (e.g. Newtonsoft.Json, Chiron, FSharp.Data.Json)
+* Extendable with other formats
 
-type Coupon = {
-    ``type``: string
-    amount: decimal
-    code: string
-}
+## Example (Newtonsoft.Json)
 
-type Billing = {
-    firstName: string
-    lastName: string
-    address: string
-    city: string
-    state: string
-    zipcode: string
-    countryIso: string
-    cardNumber: string
-    cardType: string
-    cardExpYear: string
-    cardExpMonth: string
-}
+[Complete source script](https://github.com/battermann/halsharp/blob/master/Script.fsx)
 
-type Shipping = {
-    firstName: string
-    lastName: string
-    address: string
-    city: string
-    state: string
-    zipcode: string
-    countryIso: string    
-}
+Create instances of the response body models:
 
-let payment = {
-    subtotal = 49m
-    tax = 0m
-    freight = 5m
-    total = 44m
-}
-
+```fsharp
 let coupon = {
     ``type`` = "dollarOff"
     amount = 10m
@@ -82,7 +44,16 @@ let billing = {
     cardExpYear = "2015"
     cardExpMonth = "01"
 }
+```
 
+### Create embedded resources
+
+Create empty resources and:
+
+* add the record type instances as payload
+* add links
+
+```fsharp
 let couponResource =
     Resource.empty
     |> withPayload coupon
@@ -97,8 +68,19 @@ let billingResource =
     Resource.empty
     |> withPayload billing
     |> addLink "self" (Link.create (relUri "/api/members/109087/billings/135451"))
+```
 
-let resource = 
+### Create the main resource
+
+Now the main resource can be created by adding the
+
+* payload
+* links
+* embedded resources
+* curies
+
+```fsharp
+let resource =
     Resource.empty
     |> withPayload payment
     |> addLink "self" (Link.create (relUri "/api/member/109087/payments/8888"))
@@ -109,16 +91,25 @@ let resource =
     |> addEmbedded "http://www.example.com/docs/rels/shipping" shippingResource
     |> addEmbedded "http://www.example.com/docs/rels/billing" billingResource
     |> withCuries [ "ns", Uri "http://www.example.com/docs/rels/{rel}" ]
+```
 
+### Serialization
+
+Serialize the resource with Newtonsoft.Json:
+
+```fsharp
 let serialize x = JsonConvert.SerializeObject(x, Formatting.Indented)
 
-resource 
-|> ObjectInterpreter.toJson 
-|> serialize 
+resource
+|> ObjectInterpreter.toJson // returns obj
+|> serialize
 |> printfn "%A"
+```
 
-(*
-"{
+### Output
+
+```json
+{
   "_embedded": {
     "ns:billing": {
       "_links": {
@@ -188,5 +179,5 @@ resource
   "subtotal": 49.0,
   "tax": 0.0,
   "total": 44.0
-}"    
-*)
+}
+```

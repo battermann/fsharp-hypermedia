@@ -87,8 +87,8 @@ module internal Curies =
 
 [<RequireQualifiedAccess>]
 [<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
-module internal Link =
-    let simple href = {
+module Link =
+    let create href = {
         href = href
         templated = None
         mediaType = None
@@ -99,7 +99,7 @@ module internal Link =
         hreflang = None 
     }
 
-    let serializeSingleLink (link: Link) : AbstractJsonObject<'a> =
+    let internal serializeSingleLink (link: Link) : AbstractJsonObject<'a> =
         Map.ofList
             [ yield ("href", JString (string link.href))
               yield! match link.templated with Some b -> [ "templated", JBool b ] | _ -> []
@@ -111,12 +111,12 @@ module internal Link =
               yield! match link.hreflang with Some lang -> [ "hreflang", JString lang ] | _ -> [] ]
             |> JRecord
 
-    let serialize (links: Map<string, MaybeSingleton<Link>>) (curies: Curies) : AbstractJsonObject<'a> option =
+    let internal serialize (links: Map<string, MaybeSingleton<Link>>) (curies: Curies) : AbstractJsonObject<'a> option =
 
         let linksWithCuries =
             curies 
             |> Map.toList 
-            |> List.map (fun (name, href) -> { simple href with name = Some name; templated = Some true })
+            |> List.map (fun (name, href) -> { create href with name = Some name; templated = Some true })
             |> Collection
             |> fun x -> "curies", x
             |> links.Add
@@ -141,7 +141,6 @@ module internal Link =
             |> Some
 
 /// Contains functions to transform resources to Json representations.
-[<RequireQualifiedAccess>]
 module Resource =
 
     /// Returns an empty resource object the represents a valid HAL resource.
@@ -154,9 +153,9 @@ module Resource =
     }
 
     let internal tryToMap(x: 'T) =
-        let objectToMap(object: obj) =
-            x.GetType().GetProperties(BindingFlags.DeclaredOnly ||| BindingFlags.Public ||| BindingFlags.Instance) 
-            |> Array.map (fun prop -> prop.Name, prop.GetValue(x, null))
+        let objectToMap(obj: obj) =
+            obj.GetType().GetProperties(BindingFlags.DeclaredOnly ||| BindingFlags.Public ||| BindingFlags.Instance) 
+            |> Array.map (fun prop -> prop.Name, prop.GetValue(obj, null))
             |> Map.ofArray
 
         let recordToMap (record:'T) = 
@@ -215,6 +214,32 @@ module Resource =
     /// The interpreter transforms the generic Json representation to a specific representation.
     let toJson interpreter resource =
         resource |> serialize |> interpreter
+
+    let withPayload (payload: obj) resource : Resource<obj> =
+        { resource with payload = payload |> Some }
+
+    let withLinks links resource =
+        { resource with links = Map.ofList links }
+    let addLink rel link resource =
+        { resource with links = resource.links.Add(rel, Singleton link) }
+
+    let addLinkCollection rel link resource =
+        { resource with links = resource.links.Add(rel, Collection link) }             
+
+    let addEmbedded name embedded resource =
+        { resource with embedded = resource.embedded.Add(name, Singleton embedded) }
+
+    let addEmbeddedCollection name embedded resource =
+        { resource with embedded = resource.embedded.Add(name, Collection embedded) }        
+
+    let withCuries curies resource =
+        { resource with curies = Map.ofList curies }
+
+    let withProperties props resource = 
+        { resource with properties = props |> Map.ofList |> Map.map (fun _ x -> JObject x) }
+
+    let addProperty name prop resource = 
+        { resource with properties = resource.properties.Add(name, JObject prop) }
 
 [<assembly:System.Runtime.CompilerServices.InternalsVisibleTo ("halsharp.tests")>]
 ()

@@ -21,9 +21,9 @@ let ``Curies`` =
     testCase "add curies, replace links recursively" <| fun _ ->
       let order1 = {
         Resource.empty with
-          links = Map.ofList [ "self", Singleton (Link.simple (relUri "/orders/123"))
-                               "http://example.com/docs/rels/basket", Singleton (Link.simple (relUri "/baskets/98712"))
-                               "http://example.com/docs/rels/customer", Singleton (Link.simple (relUri "/customers/7809")) ]
+          links = Map.ofList [ "self", Singleton (Link.create (relUri "/orders/123"))
+                               "http://example.com/docs/rels/basket", Singleton (Link.create (relUri "/baskets/98712"))
+                               "http://example.com/docs/rels/customer", Singleton (Link.create (relUri "/customers/7809")) ]
           properties = Map.ofList [ "total", JObject (Number 30M)
                                     "currency", JString "USD"
                                     "status", JString "shipped" ]
@@ -31,9 +31,9 @@ let ``Curies`` =
 
       let order2 = {
         Resource.empty with
-          links = Map.ofList [ "self", Singleton (Link.simple (relUri "/orders/124"))
-                               "http://example.com/docs/rels/basket", Singleton (Link.simple (relUri "/baskets/97213"))
-                               "http://example.com/docs/rels/customer", Singleton (Link.simple (relUri "/customers/12369")) ]
+          links = Map.ofList [ "self", Singleton (Link.create (relUri "/orders/124"))
+                               "http://example.com/docs/rels/basket", Singleton (Link.create (relUri "/baskets/97213"))
+                               "http://example.com/docs/rels/customer", Singleton (Link.create (relUri "/customers/12369")) ]
           properties = Map.ofList [ "total", JObject (Number 20M)
                                     "currency", JString "USD"
                                     "status", JString "processing" ]
@@ -41,11 +41,11 @@ let ``Curies`` =
 
       let resource = {
         Resource.empty with
-          links = Map.ofList [ "self", Singleton (Link.simple (relUri "/orders"))
-                               "next", Singleton (Link.simple (relUri "/orders?page=2"))
-                               "http://example.com/docs/rels/find", Singleton ({ Link.simple (relUri "/orders{?id}") with templated = Some true })
-                               "http://example.com/docs/rels/admin", Collection [ { Link.simple (relUri "/admins/2") with title = Some "Fred" }
-                                                                                  { Link.simple (relUri "/admins/5") with title = Some "Kate" } ] ]
+          links = Map.ofList [ "self", Singleton (Link.create (relUri "/orders"))
+                               "next", Singleton (Link.create (relUri "/orders?page=2"))
+                               "http://example.com/docs/rels/find", Singleton ({ Link.create (relUri "/orders{?id}") with templated = Some true })
+                               "http://example.com/docs/rels/admin", Collection [ { Link.create (relUri "/admins/2") with title = Some "Fred" }
+                                                                                  { Link.create (relUri "/admins/5") with title = Some "Kate" } ] ]
           properties = Map.ofList [ "currentlyProcessing", JObject (Number 14M)
                                     "shippedToday", JObject (Number 20M) ]      
           embedded = Map.ofList [ "http://example.com/docs/rels/order", Collection [ order1; order2 ] ]
@@ -69,19 +69,19 @@ let ``Empty resource with ChironInterpreter`` =
 [<Tests>]
 let ``Link with ChironInterpreter`` =
   testList "links" [
-    testCase "simple link to string" <| fun _ ->
+    testCase "create link to string" <| fun _ ->
       Expect.equal 
-        (Link.simple (relUri "/orders") |> Link.serializeSingleLink |> ChironInterpreter.interpret|> Json.format) 
+        (Link.create (relUri "/orders") |> Link.serializeSingleLink |> ChironInterpreter.interpret|> Json.format) 
         """{"href":"/orders"}""" 
-        "should return simple link with href attribute"
+        "should return create link with href attribute"
     testCase "link with template to string" <| fun _ ->
       Expect.equal 
-        ({ Link.simple (relUri "/orders/{id}") with templated = Some true } |> Link.serializeSingleLink |> ChironInterpreter.interpret|> Json.format) 
+        ({ Link.create (relUri "/orders/{id}") with templated = Some true } |> Link.serializeSingleLink |> ChironInterpreter.interpret|> Json.format) 
         """{"href":"/orders/{id}","templated":true}""" 
         "should return link object with href and templated attribute"
     testCase "link with other attributes" <| fun _ ->
       let link = { 
-        Link.simple (relUri "/orders/{id}")
+        Link.create (relUri "/orders/{id}")
         with templated = Some true
              mediaType = Some "application/json"
              deprication = Some (System.Uri("http://example.com/deprications/foo"))
@@ -108,7 +108,7 @@ let ``Resource with ChironInterpreter`` =
 
   let shipping = {
     Resource.empty with
-      links = Map.ofList [ "self", Singleton <| Link.simple (relUri ("/shipping/135451")) ]
+      links = Map.ofList [ "self", Singleton <| Link.create (relUri ("/shipping/135451")) ]
       properties = Map.ofList [ "first_name", JString "Heman"
                                 "last_name", JString "Radtke"
                                 "address", JString "1234 Day St."
@@ -120,7 +120,7 @@ let ``Resource with ChironInterpreter`` =
 
   let billing = {
     Resource.empty with
-      links = Map.ofList [ "self", Singleton (Link.simple (relUri "/billing/135451")) ]
+      links = Map.ofList [ "self", Singleton (Link.create (relUri "/billing/135451")) ]
       properties = Map.ofList [ "first_name", JString "Herman"
                                 "last_name", JString "Radtke"
                                 "address", JString "1234 Day St."
@@ -136,12 +136,12 @@ let ``Resource with ChironInterpreter`` =
 
   let eCommerceResource = {
     Resource.empty with
-      links = Map.ofList [ "self", Singleton <| Link.simple (relUri "/payment")
-                           "http://example.com/rels/billing", Singleton <| Link.simple (relUri "/member/109087/billing")
-                           "http://example.com/rels/shipping", Singleton <| Link.simple (relUri "/member/109087/shipping")
-                           "http://example.com/rels/payment/coupon", Singleton <| Link.simple (relUri "/payment/coupon")
-                           "http://example.com/rels/payment/billing", Singleton <| Link.simple (relUri "/payment/billing")
-                           "http://example.com/rels/payment/shipping", Singleton <| Link.simple (relUri "/payment/shipping")
+      links = Map.ofList [ "self", Singleton <| Link.create (relUri "/payment")
+                           "http://example.com/rels/billing", Singleton <| Link.create (relUri "/member/109087/billing")
+                           "http://example.com/rels/shipping", Singleton <| Link.create (relUri "/member/109087/shipping")
+                           "http://example.com/rels/payment/coupon", Singleton <| Link.create (relUri "/payment/coupon")
+                           "http://example.com/rels/payment/billing", Singleton <| Link.create (relUri "/payment/billing")
+                           "http://example.com/rels/payment/shipping", Singleton <| Link.create (relUri "/payment/shipping")
                         ]
       embedded = Map.ofList [ "http://www.example.com/rels/coupon", Singleton <| coupon
                               "http://example.com/rels/shipping", Singleton <| shipping
@@ -162,8 +162,8 @@ let ``Resource with ChironInterpreter`` =
     testCase "resource with links to json" <| fun _ ->
       let resource = {
         Resource.empty with
-          links = Map.ofList [ "self", Singleton <| Link.simple (relUri "/orders")
-                               "next", Singleton <| Link.simple (relUri "/orders?page=2") ]
+          links = Map.ofList [ "self", Singleton <| Link.create (relUri "/orders")
+                               "next", Singleton <| Link.create (relUri "/orders?page=2") ]
       }
       Expect.equal 
         (resource |> ChironInterpreter.toJson |> Json.format) 
@@ -185,9 +185,9 @@ let ``Resource with ChironInterpreter`` =
       let resource = {
         Resource.empty with
           links = Map.ofList 
-            [ "http://booklistapi.com/rels/authors", Collection [ Link.simple (relUri "/author/4554")
-                                                                  Link.simple (relUri "/author/5758")
-                                                                  Link.simple (relUri "/author/6853") ] ]
+            [ "http://booklistapi.com/rels/authors", Collection [ Link.create (relUri "/author/4554")
+                                                                  Link.create (relUri "/author/5758")
+                                                                  Link.create (relUri "/author/6853") ] ]
       }
         
       Expect.equal 
@@ -247,8 +247,8 @@ let ``Resource with ChironInterpreter`` =
     testCase "resource with embedded" <| fun _ ->
       let embedded = {
         Resource.empty with
-          links = Map.ofList [ "self", Singleton <| Link.simple (relUri "/orders")
-                               "next", Singleton <| Link.simple (relUri "/orders?page=2")
+          links = Map.ofList [ "self", Singleton <| Link.create (relUri "/orders")
+                               "next", Singleton <| Link.create (relUri "/orders?page=2")
                             ]
           properties = Map.ofList [ "thing", JObject someOject ]
       }
@@ -283,7 +283,7 @@ let ``Resource with FSharpDataInterpreter`` =
 
   let shipping = {
     Resource.empty with
-      links = Map.ofList [ "self", Singleton <| Link.simple (relUri "/shipping/135451") ]
+      links = Map.ofList [ "self", Singleton <| Link.create (relUri "/shipping/135451") ]
       properties = Map.ofList [ "first_name", JObject <| JsonValue.String("Heman")
                                 "last_name", JObject <| JsonValue.String("Radtke")
                                 "address", JObject <| JsonValue.String( "1234 Day St.")
@@ -295,7 +295,7 @@ let ``Resource with FSharpDataInterpreter`` =
 
   let billing = {
     Resource.empty with
-      links = Map.ofList [ "self", Singleton <| Link.simple (relUri "/billing/135451") ]
+      links = Map.ofList [ "self", Singleton <| Link.create (relUri "/billing/135451") ]
       properties = Map.ofList [ "first_name", JObject <| JsonValue.String("Herman")
                                 "last_name", JObject <| JsonValue.String( "Radtke")
                                 "address", JObject <| JsonValue.String( "1234 Day St.")
@@ -311,12 +311,12 @@ let ``Resource with FSharpDataInterpreter`` =
 
   let eCommerceResource = {
     Resource.empty with
-      links = Map.ofList [ "self", Singleton <| Link.simple (relUri "/payment")
-                           "http://example.com/rels/billing", Singleton <| Link.simple (relUri "/member/109087/billing")
-                           "http://example.com/rels/shipping", Singleton <| Link.simple (relUri "/member/109087/shipping")
-                           "http://example.com/rels/payment/coupon", Singleton <| Link.simple (relUri "/payment/coupon")
-                           "http://example.com/rels/payment/billing", Singleton <| Link.simple (relUri "/payment/billing")
-                           "http://example.com/rels/payment/shipping", Singleton <| Link.simple (relUri "/payment/shipping")
+      links = Map.ofList [ "self", Singleton <| Link.create (relUri "/payment")
+                           "http://example.com/rels/billing", Singleton <| Link.create (relUri "/member/109087/billing")
+                           "http://example.com/rels/shipping", Singleton <| Link.create (relUri "/member/109087/shipping")
+                           "http://example.com/rels/payment/coupon", Singleton <| Link.create (relUri "/payment/coupon")
+                           "http://example.com/rels/payment/billing", Singleton <| Link.create (relUri "/payment/billing")
+                           "http://example.com/rels/payment/shipping", Singleton <| Link.create (relUri "/payment/shipping")
                         ]
       embedded = Map.ofList [ "http://www.example.com/rels/coupon", Singleton <|  coupon
                               "http://example.com/rels/shipping", Singleton <| shipping
@@ -357,7 +357,7 @@ let ``Json.NET`` =
 
       let shipping = {
         Resource.empty with
-          links = Map.ofList [ "self", Singleton <| Link.simple (relUri "/shipping/135451") ]
+          links = Map.ofList [ "self", Singleton <| Link.create (relUri "/shipping/135451") ]
           properties = Map.ofList [ "first_name", JObject ("Heman" :> obj)
                                     "last_name", JObject ("Radtke" :> obj)
                                     "address", JObject ("1234 Day St." :> obj)
@@ -369,7 +369,7 @@ let ``Json.NET`` =
 
       let billing = {
         Resource.empty with
-          links = Map.ofList [ "self", Singleton <| Link.simple (relUri "/billing/135451") ]
+          links = Map.ofList [ "self", Singleton <| Link.create (relUri "/billing/135451") ]
           properties = Map.ofList [ "first_name", JObject ("Herman" :> obj)
                                     "last_name", JObject ("Radtke" :> obj)
                                     "address", JObject ("1234 Day St." :> obj)
@@ -385,12 +385,12 @@ let ``Json.NET`` =
 
       let eCommerceResource = {
         Resource.empty with
-          links = Map.ofList [ "self", Singleton <| Link.simple (relUri "/payment")
-                               "http://example.com/rels/billing", Singleton <| Link.simple (relUri "/member/109087/billing")
-                               "http://example.com/rels/shipping", Singleton <|Link.simple (relUri "/member/109087/shipping")
-                               "http://example.com/rels/payment/coupon", Singleton <|Link.simple (relUri "/payment/coupon")
-                               "http://example.com/rels/payment/billing", Singleton <|Link.simple (relUri "/payment/billing")
-                               "http://example.com/rels/payment/shipping", Singleton <|Link.simple (relUri "/payment/shipping")
+          links = Map.ofList [ "self", Singleton <| Link.create (relUri "/payment")
+                               "http://example.com/rels/billing", Singleton <| Link.create (relUri "/member/109087/billing")
+                               "http://example.com/rels/shipping", Singleton <|Link.create (relUri "/member/109087/shipping")
+                               "http://example.com/rels/payment/coupon", Singleton <|Link.create (relUri "/payment/coupon")
+                               "http://example.com/rels/payment/billing", Singleton <|Link.create (relUri "/payment/billing")
+                               "http://example.com/rels/payment/shipping", Singleton <|Link.create (relUri "/payment/shipping")
                             ]
           embedded = Map.ofList [ "http://www.example.com/rels/coupon", Singleton <| coupon
                                   "http://example.com/rels/shipping", Singleton <| shipping
