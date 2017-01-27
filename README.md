@@ -199,6 +199,8 @@ resource
 
 ## Siren Example with FSharp.Data
 
+[Complete source script](https://github.com/battermann/fsharp-hypermedia/blob/master/SirenExamples.fsx)
+
 Define embedded link:
 
 ```fsharp
