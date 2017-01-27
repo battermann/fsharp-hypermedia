@@ -12,12 +12,12 @@ open Hypermedia.Models
 let ``Siren`` =
     let itmes = {
         Link.create (Rel "http://x.io/rels/order-items") (Href (Uri "http://api.x.io/orders/42/items")) with
-            classes = [ Class "items"; Class "collection" ]
+            classes = [ Class "collection"; Class "items" ]
     }
 
     let customer = {
         Entity.empty with
-            classes = [ Class "info"; Class "customer" ]
+            classes = [ Class "customer"; Class "info" ]
             properties = Map.ofList [ Name "customerId", JString "pj123"
                                       Name "name", JString "Peter Joseph" ]
             links = [ Link.create (Rel "self") (Href (Uri "http://api.x.io/customers/pj123")) ]
@@ -39,7 +39,6 @@ let ``Siren`` =
 
     let entity = {
         Entity.empty with
-            title = Some (Title "foo")
             properties = Map.ofList [ Name "orderNumber", JObject (42 :> obj)
                                       Name "itemCount", JObject (3 :> obj)
                                       Name "status", JString "pending" ]
@@ -56,7 +55,7 @@ let ``Siren`` =
         testCase "correctly serialize a siren resource with newtonsoft.json" <| fun _ ->
             Expect.equal 
                 (entity |> ObjectInterpreter.Siren.toJson |> JsonConvert.SerializeObject)
-                """{"actions":[{"fields":[{"name":"orderNumber","type":"hidden","value":"42"},{"name":"productCode","type":"text"},{"name":"quantity","type":"number"}],"href":"http://api.x.io/orders/42/items","method":"POST","name":"add-item","title":"Add Item","type":"application/x-www-form-urlencoded"}],"class":["order"],"entities":[{"class":["collection","items"],"href":"http://api.x.io/orders/42/items","rel":["http://x.io/rels/order-items"]},{"class":["customer","info"],"links":[{"href":"http://api.x.io/customers/pj123","rel":["self"]}],"properties":{"customerId":"pj123","name":"Peter Joseph"},"rel":["http://x.io/rels/customer"]}],"links":[{"href":"http://api.x.io/orders/42","rel":["self"]},{"href":"http://api.x.io/orders/41","rel":["previous"]},{"href":"http://api.x.io/orders/43","rel":["next"]}],"properties":{"itemCount":3,"orderNumber":42,"status":"pending"}}"""
+                """{"actions":[{"fields":[{"name":"orderNumber","type":"hidden","value":"42"},{"name":"productCode","type":"text"},{"name":"quantity","type":"number"}],"href":"http://api.x.io/orders/42/items","method":"POST","name":"add-item","title":"Add Item","type":"application/x-www-form-urlencoded"}],"class":["order"],"entities":[{"class":["customer","info"],"links":[{"href":"http://api.x.io/customers/pj123","rel":["self"]}],"properties":{"customerId":"pj123","name":"Peter Joseph"},"rel":["http://x.io/rels/customer"]},{"class":["collection","items"],"href":"http://api.x.io/orders/42/items","rel":["http://x.io/rels/order-items"]}],"links":[{"href":"http://api.x.io/orders/42","rel":["self"]},{"href":"http://api.x.io/orders/41","rel":["previous"]},{"href":"http://api.x.io/orders/43","rel":["next"]}],"properties":{"itemCount":3,"orderNumber":42,"status":"pending"}}"""
                 "should return create link with href attribute" 
   ]
 

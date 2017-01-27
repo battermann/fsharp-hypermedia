@@ -24,6 +24,7 @@ module internal Attributes =
     let METHOD = "method"
     let ACTIONS = "actions"
     let ENTITIES = "entities"
+    let PROPERTIES = "properties"
 
 [<RequireQualifiedAccess>]
 [<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
@@ -114,7 +115,7 @@ module internal Action =
             |> fun x -> TYPE, JString x
             |> map.Add
         |> fun map ->
-            action.fields |> Map.toList |>  List.map (fun (Name n, f) -> f |> Field.serialize n) |> toMap FIELDS
+            merge [ map; action.fields |> Map.toList |>  List.map (fun (Name n, f) -> f |> Field.serialize n) |> toMap FIELDS ]
         |> fun map -> map.Add(NAME, JString name)
         |> JRecord
 
@@ -140,7 +141,7 @@ module internal Link =
         |> fun map ->
             match link.mediaType with Some (MediaType mt) -> map.Add(TYPE, JString mt) | _ -> map
         |> fun map ->
-            fst link.rel :: snd link.rel |> List.map (fun (Rel rel) -> JString rel) |> toMap REL
+            merge [ map; fst link.rel :: snd link.rel |> List.map (fun (Rel rel) -> JString rel) |> toMap REL ]
         |> JRecord
 
 [<RequireQualifiedAccess>]
@@ -161,14 +162,17 @@ module internal Entity =
         |> fun map ->
             match entity.title with Some (Title t) -> map.Add(TITLE, JString t) | _ -> map
         |> fun map ->
-            match rel with Some (Rel r) -> map.Add(REL, JString r) | _ -> map            
+            match rel with Some (Rel r) -> map.Add(REL, JArray [ JString r ]) | _ -> map            
         |> fun map ->
-            entity.links |> List.map Link.serialize |> toMap LINKS
+            merge [ map; entity.links |> List.map Link.serialize |> toMap LINKS ]
         |> fun map ->
-            entity.actions |> Map.toList |> List.map (fun (Name n, v) -> Action.serialize n v) |> toMap ACTIONS
+            merge [ map; entity.actions |> Map.toList |> List.map (fun (Name n, v) -> Action.serialize n v) |> toMap ACTIONS ]
         |> fun map ->
-            merge [ entity.properties |> Map.toList |> List.map (fun (Name n, v) -> n,v) |> Map.ofList
-                    map ]
+            if entity.properties |> (not << Map.isEmpty) then   
+                (PROPERTIES, entity.properties |> Map.toList |> List.map (fun (Name n, v) -> n,v) |> Map.ofList |> JRecord)
+                |> map.Add
+            else
+                map
         |> fun map ->
             let embedded = 
                 entity.entities 
