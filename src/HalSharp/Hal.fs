@@ -141,6 +141,7 @@ module Link =
             |> Some
 
 /// Contains functions to transform resources to Json representations.
+[<RequireQualifiedAccess>]
 module Resource =
 
     /// Returns an empty resource object the represents a valid HAL resource.

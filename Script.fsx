@@ -5,7 +5,6 @@
 open System
 open Newtonsoft.Json
 open Hal
-open Resource
 
 let relUri path = Uri(path, UriKind.Relative)
 
@@ -85,30 +84,30 @@ let billing = {
 
 let couponResource =
     Resource.empty
-    |> withPayload coupon
-    |> addLink "self" (Link.create (relUri "/api/members/109087/coupons/654"))
+    |> Resource.withPayload coupon
+    |> Resource.addLink "self" (Link.create (relUri "/api/members/109087/coupons/654"))
 
 let shippingResource =
     Resource.empty
-    |> withPayload shipping
-    |> addLink "self" (Link.create (relUri "/api/members/109087/shippings/135451"))
+    |> Resource.withPayload shipping
+    |> Resource.addLink "self" (Link.create (relUri "/api/members/109087/shippings/135451"))
 
 let billingResource =
     Resource.empty
-    |> withPayload billing
-    |> addLink "self" (Link.create (relUri "/api/members/109087/billings/135451"))
+    |> Resource.withPayload billing
+    |> Resource.addLink "self" (Link.create (relUri "/api/members/109087/billings/135451"))
 
 let resource = 
     Resource.empty
-    |> withPayload payment
-    |> addLink "self" (Link.create (relUri "/api/member/109087/payments/8888"))
-    |> addLink "http://example.com/docs/rels/billing" (Link.create (relUri "/api/member/109087/billings/135451"))
-    |> addLink "http://example.com/docs/rels/shipping" (Link.create (relUri "/api/member/109087/shipping/135451"))
-    |> addLink "http://example.com/docs/rels/coupon" (Link.create (relUri "/api/member/109087/coupons/654"))
-    |> addEmbedded "http://www.example.com/docs/rels/coupon" couponResource
-    |> addEmbedded "http://www.example.com/docs/rels/shipping" shippingResource
-    |> addEmbedded "http://www.example.com/docs/rels/billing" billingResource
-    |> withCuries [ "ns", Uri "http://www.example.com/docs/rels/{rel}" ]
+    |> Resource.withPayload payment
+    |> Resource.addLink "self" (Link.create (relUri "/api/member/109087/payments/8888"))
+    |> Resource.addLink "http://example.com/docs/rels/billing" (Link.create (relUri "/api/member/109087/billings/135451"))
+    |> Resource.addLink "http://example.com/docs/rels/shipping" (Link.create (relUri "/api/member/109087/shipping/135451"))
+    |> Resource.addLink "http://example.com/docs/rels/coupon" (Link.create (relUri "/api/member/109087/coupons/654"))
+    |> Resource.addEmbedded "http://www.example.com/docs/rels/coupon" couponResource
+    |> Resource.addEmbedded "http://www.example.com/docs/rels/shipping" shippingResource
+    |> Resource.addEmbedded "http://www.example.com/docs/rels/billing" billingResource
+    |> Resource.withCuries [ "ns", Uri "http://www.example.com/docs/rels/{rel}" ]
 
 let serialize x = JsonConvert.SerializeObject(x, Formatting.Indented)
 
