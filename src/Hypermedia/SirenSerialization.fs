@@ -71,7 +71,7 @@ module internal Field =
         value = None
         title = None
     }
-    let serialize name (field: Field) =
+    let internal serialize name (field: Field) =
         field.classes |> List.map (fun (Class c) -> JString c) |> toMap CLASS
         |> fun map ->
             match field.inputType with Some t -> t | _ -> InputType.Text
@@ -121,7 +121,7 @@ module internal Action =
 
 [<RequireQualifiedAccess>]
 [<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
-module internal Link =
+module Link =
 
     let create rel href : Link = {
         href = href
@@ -131,7 +131,7 @@ module internal Link =
         mediaType = None
     }
 
-    let serialize (link: Link) =
+    let internal serialize (link: Link) =
         link.classes |> List.map (fun (Class c) -> JString c) |> toMap CLASS
         |> fun map -> 
             let (Href href) = link.href
@@ -143,6 +143,9 @@ module internal Link =
         |> fun map ->
             merge [ map; fst link.rel :: snd link.rel |> List.map (fun (Rel rel) -> JString rel) |> toMap REL ]
         |> JRecord
+
+    let withClasses classes link : Link =
+        { link with classes = classes |> List.map Class }
 
 [<RequireQualifiedAccess>]
 [<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
@@ -183,6 +186,24 @@ module internal Entity =
                 |> toMap ENTITIES
             merge [ embedded; map ]
         |> JRecord
+    
+    let withClasses classes entity : Entity<_> =
+        { entity with classes = classes |> List.map Class }
+
+    let addProperty name prop entity: Entity<'a> = 
+        { entity with properties = entity.properties.Add(Name name, JObject prop) }  
+
+    let withLinks links entity: Entity<'a> =
+        { entity with links = links }
+
+    let addEmbeddedLink link entity =
+        { entity with entities = EmbeddedLink link :: entity.entities }
+
+    let addEmbeddedEntity embedded rel entity =
+        { entity with entities = EmbeddedRepresentation (embedded, Rel rel) :: entity.entities }   
+
+    let withActions actions entity =
+        { entity with actions = actions |> List.map (fun (k,v) -> Name k, v) |> Map.ofList }                
 
     let serialize entity = serializeRec None entity
 
