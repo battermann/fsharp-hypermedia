@@ -5,7 +5,7 @@ This is a first, raw version.
 Define [HAL resource](http://stateless.co/hal_specification.html) representations in F# and convert them to JSON.
 
 * Idiomatic support for F#
-* Supports multiple serializers / formats (e.g. Newtonsoft.Json, Chiron, FSharp.Data.Json)
+* Supports multiple serializers / formats (e.g. Newtonsoft.Json (obj), Chiron.Json, FSharp.Data.JsonValue)
 * Extendable with other formats
 * Media type `application/hal+json` ([spec](http://stateless.co/hal_specification.html))
 
