@@ -21,14 +21,14 @@ type InputType =
 
 type Field = {
     classes: Class list
-    inputTpye: InputType option
+    inputType: InputType option
     value: Value option
     title: Title option
 }
 
 type Action = {
     classes: Class list
-    method: HttpMethod option
+    httpMethod: HttpMethod option
     href: Href
     title: Title option
     mediaType: MediaType option
@@ -43,14 +43,6 @@ type Link = {
     mediaType: MediaType option
 }
 
-type EmbeddedLink = {
-    classes: Class list
-    rel: Rel * Rel list
-    href: Href
-    mediaType: MediaType option
-    title: Title option
-}
-
 type Entity<'a> = {
     properties: Map<string, AbstractJsonObject<'a>>
     entities: SubEntity<'a> list
@@ -62,4 +54,4 @@ type Entity<'a> = {
 
 and SubEntity<'a> =
     | EmbeddedRepresentation of Entity<'a> * Rel
-    | EmbeddeLink of EmbeddedLink
+    | EmbeddedLink of Link

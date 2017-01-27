@@ -52,7 +52,8 @@
     <Compile Include="Hal.Curies.Tests.fs" />
     <Compile Include="Hal.Links.Tests.fs" />
     <Compile Include="Hal.Chiron.Tests.fs" />
-    <Compile Include="Hal.FSharpData.Tests.fs" />    
+    <Compile Include="Hal.FSharpData.Tests.fs" />
+    <Compile Include="Siren.Newtonsoft.Json.Tests.fs" />    
     <Compile Include="Main.fs" />
     <None Include="App.config" />
   </ItemGroup>

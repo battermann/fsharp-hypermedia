@@ -1,4 +1,4 @@
-module Hal.Newtonsoft.Json.Tests
+module Hal.NewtonsoftJson.Tests
 
 open Expecto
 open System
