@@ -2,6 +2,8 @@
 /// Transform HAL resource to specific Json implementations.
 module Hal
 
+// todo ensure that _links and _embedded are unique
+
 open System
 open System.Reflection
 open Microsoft.FSharp.Reflection
