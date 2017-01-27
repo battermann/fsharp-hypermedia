@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Name>halsharp</Name>
-    <AssemblyName>halsharp</AssemblyName>
-    <RootNamespace>halsharp</RootNamespace>
+    <Name>Hypermedia</Name>
+    <AssemblyName>Hypermedia</AssemblyName>
+    <RootNamespace>Hypermedia</RootNamespace>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
@@ -40,7 +40,11 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Shared.fs" />  
+    <Compile Include="AbstractJsonObject.fs" />
     <Compile Include="Hal.fs" />
+    <Compile Include="Siren.fs" />    
+    <Compile Include="SirenSerialization.fs" />    
     <Compile Include="ChironInterpreter.fs" />
     <Compile Include="FsharpDataInterpreter.fs" />
     <Compile Include="ObjectInterpreter.fs" />

@@ -6,7 +6,7 @@ NUGET
     Chiron (6.2.1)
       Aether (>= 8.0.2 < 9.0)
       FParsec (>= 1.0 < 2.0)
-    Expecto (3.2)
+    Expecto (3.2.1)
       Argu (>= 3.2)
       FSharp.Core (>= 3.1.2.5)
       Mono.Cecil (>= 0.9.6.4)
