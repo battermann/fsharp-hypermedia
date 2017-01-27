@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Name>halsharp.tests</Name>
-    <AssemblyName>halsharp.tests</AssemblyName>
-    <RootNamespace>halsharp.tests</RootNamespace>
+    <Name>Hypermedia.Tests</Name>
+    <AssemblyName>Hypermedia.Tests</AssemblyName>
+    <RootNamespace>Hypermedia.Tests</RootNamespace>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
@@ -42,8 +42,8 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../../src/HalSharp/halsharp.fsproj">
-      <Name>halsharp.fsproj</Name>
+    <ProjectReference Include="../../src/Hypermedia/Hypermedia.fsproj">
+      <Name>Hypermeida.fsproj</Name>
       <Project>{ea67860f-9748-447f-825e-ceb423d2c4c4}</Project>
     </ProjectReference>
   </ItemGroup>

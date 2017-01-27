@@ -242,5 +242,5 @@ module Resource =
     let addProperty name prop resource = 
         { resource with properties = resource.properties.Add(name, JObject prop) }
 
-[<assembly:System.Runtime.CompilerServices.InternalsVisibleTo ("halsharp.tests")>]
+[<assembly:System.Runtime.CompilerServices.InternalsVisibleTo ("Hypermedia.Tests")>]
 ()

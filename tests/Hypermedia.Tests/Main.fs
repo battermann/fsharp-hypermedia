@@ -1,4 +1,4 @@
-module halsharp.tests
+module Hypermedia.Tests
 
 open Expecto
 
