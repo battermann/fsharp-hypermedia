@@ -1,5 +1,5 @@
-#load "src/HalSharp/Hal.fs"
-#load "src/HalSharp/ObjectInterpreter.fs"
+#load "src/Hypermedia/Hal.fs"
+#load "src/Hypermedia/ObjectInterpreter.fs"
 #load "paket-files/include-scripts/net40/include.newtonsoft.json.fsx"
 
 open System
@@ -112,7 +112,7 @@ let resource =
 let serialize x = JsonConvert.SerializeObject(x, Formatting.Indented)
 
 resource 
-|> ObjectInterpreter.toJson 
+|> ObjectInterpreter.Hal.toJson 
 |> serialize 
 |> printfn "%A"
 

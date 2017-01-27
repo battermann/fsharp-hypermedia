@@ -1,15 +1,18 @@
-# F# JSON support for Hypertext Application Language (HAL) media type
+# F# JSON support for HAL and Siren hypermedia types
 
 This is a first, raw version.
 
-Define [HAL resource](http://stateless.co/hal_specification.html) representations in F# and convert them to JSON.
+Define [HAL resource](http://stateless.co/hal_specification.html) or [Siren](https://github.com/kevinswiber/siren) representations in F# and convert them to JSON.
 
 * Idiomatic support for F#
 * Supports multiple serializers / formats (e.g. Newtonsoft.Json (obj), Chiron.Json, FSharp.Data.JsonValue)
 * Extendable with other formats
-* Media type `application/hal+json` ([spec](http://stateless.co/hal_specification.html))
+* Mediatypes
+  * `application/hal+json` ([spec](http://stateless.co/hal_specification.html))
+  * `application/vnd.siren+json` ([spec](https://github.com/kevinswiber/siren))
 
-## Example (Newtonsoft.Json)
+
+## HAL Example with Newtonsoft.Json
 
 [Complete source script](https://github.com/battermann/halsharp/blob/master/Script.fsx)
 
@@ -109,7 +112,7 @@ Serialize the resource with Newtonsoft.Json:
 let serialize x = JsonConvert.SerializeObject(x, Formatting.Indented)
 
 resource
-|> ObjectInterpreter.toJson // returns obj
+|> ObjectInterpreter.Hal.toJson // returns obj
 |> serialize
 |> printfn "%A"
 ```
