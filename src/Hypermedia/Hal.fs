@@ -8,13 +8,7 @@ open System
 open System.Reflection
 open Microsoft.FSharp.Reflection
 
-/// Represents a minimal generic Json object to describe a HAL resource.
-type AbstractJsonObject<'a> =
-    | JObject of 'a
-    | JRecord of Map<string, AbstractJsonObject<'a>>
-    | JString of string
-    | JArray of AbstractJsonObject<'a> list
-    | JBool of bool
+open Hypermedia.Models
 
 /// A link representation according to the HAL specification (https://tools.ietf.org/html/draft-kelly-json-hal-08).
 type Link = {

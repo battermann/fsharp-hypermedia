@@ -2,13 +2,13 @@
 module ObjectInterpreter
 
 /// Transforms an `AbstractJsonObject<obj>` into an `obj`.
-let rec interpret (instance: Hal.AbstractJsonObject<obj>) : obj =
+let rec interpret (instance: Hypermedia.Models.AbstractJsonObject<obj>) : obj =
     match instance with
-    | Hal.JObject a     -> a
-    | Hal.JBool b       -> b :> obj
-    | Hal.JString s     -> s :> obj
-    | Hal.JRecord map   -> map |> Map.map (fun _ v -> interpret v) :> obj
-    | Hal.JArray a      -> a |> List.map interpret :> obj
+    | Hypermedia.Models.JObject a     -> a
+    | Hypermedia.Models.JBool b       -> b :> obj
+    | Hypermedia.Models.JString s     -> s :> obj
+    | Hypermedia.Models.JRecord map   -> map |> Map.map (fun _ v -> interpret v) :> obj
+    | Hypermedia.Models.JArray a      -> a |> List.map interpret :> obj
 
 /// Serializes a HAL resource as `obj`
 let toJson resource = Hal.Resource.toJson interpret resource    
