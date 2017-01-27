@@ -44,7 +44,7 @@ type Link = {
 }
 
 type Entity<'a> = {
-    properties: Map<string, AbstractJsonObject<'a>>
+    properties: Map<Name, AbstractJsonObject<'a>>
     entities: SubEntity<'a> list
     actions: Map<Name, Action>
     links: Link list

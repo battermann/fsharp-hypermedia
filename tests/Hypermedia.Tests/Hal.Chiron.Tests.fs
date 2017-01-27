@@ -78,7 +78,7 @@ let ``Resource with ChironInterpreter`` =
                                "next", Singleton <| Link.create (relUri "/orders?page=2") ]
       }
       Expect.equal 
-        (resource |> ChironInterpreter.toJson |> Json.format) 
+        (resource |> ChironInterpreter.Hal.toJson |> Json.format) 
         """{"_links":{"next":{"href":"/orders?page=2"},"self":{"href":"/orders"}}}""" 
         "should return resource object with a _links object"   
 
@@ -95,7 +95,7 @@ let ``Resource with ChironInterpreter`` =
       }
         
       Expect.equal 
-        (resource |> ChironInterpreter.toJson|> Json.format) 
+        (resource |> ChironInterpreter.Hal.toJson|> Json.format) 
         """{}""" 
         "should return resource object without a _links property"
 
@@ -109,7 +109,7 @@ let ``Resource with ChironInterpreter`` =
       }
         
       Expect.equal 
-        (resource |> ChironInterpreter.toJson|> Json.format) 
+        (resource |> ChironInterpreter.Hal.toJson|> Json.format) 
         """{"_links":{"http://booklistapi.com/rels/authors":[{"href":"/author/4554"},{"href":"/author/5758"},{"href":"/author/6853"}]}}""" 
         "should return resource object a link relation with multiple links"            
 
@@ -121,7 +121,7 @@ let ``Resource with ChironInterpreter`` =
       }
         
       Expect.equal 
-        (resource |> ChironInterpreter.toJson|> Json.format) 
+        (resource |> ChironInterpreter.Hal.toJson|> Json.format) 
         """{"currentlyProcessing":14,"shippedToday":20}""" 
         "should return resource object with two properties"      
 
@@ -134,7 +134,7 @@ let ``Resource with ChironInterpreter`` =
       }
         
       Expect.equal 
-        (resource |> ChironInterpreter.toJson |> Json.format) 
+        (resource |> ChironInterpreter.Hal.toJson |> Json.format) 
         """{"currentlyProcessing":14,"shippedToday":20}""" 
         "should return resource object with two properties"           
 
@@ -147,7 +147,7 @@ let ``Resource with ChironInterpreter`` =
       }
         
       Expect.equal 
-        (resource |> ChironInterpreter.toJson|> Json.format) 
+        (resource |> ChironInterpreter.Hal.toJson|> Json.format) 
         """{"currentlyProcessing":14,"shippedToday":20}""" 
         "should return resource object with two properties"             
 
@@ -158,7 +158,7 @@ let ``Resource with ChironInterpreter`` =
       }
         
       Expect.equal 
-        (resource |> ChironInterpreter.toJson|> Json.format) 
+        (resource |> ChironInterpreter.Hal.toJson|> Json.format) 
         """{"thing":{"json":{"hello":"world"},"number":42,"string":"hello"}}""" 
         "should return resource object with property with json"  
 
@@ -177,7 +177,7 @@ let ``Resource with ChironInterpreter`` =
       }
         
       Expect.equal 
-        (resource |> ChironInterpreter.toJson|> Json.format) 
+        (resource |> ChironInterpreter.Hal.toJson|> Json.format) 
         """{"_embedded":{"thing":[{"_links":{"next":{"href":"/orders?page=2"},"self":{"href":"/orders"}},"thing":{"json":{"hello":"world"},"number":42,"string":"hello"}},{"_links":{"next":{"href":"/orders?page=2"},"self":{"href":"/orders"}},"thing":{"json":{"hello":"world"},"number":42,"string":"hello"}}]}}""" 
         "should return resource object with an embedded resource"      
 

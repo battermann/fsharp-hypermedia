@@ -19,7 +19,7 @@ let ``Json.NET`` =
   testList "json.net" [
     testCase "empty resource" <| fun _ ->
       Expect.equal 
-        (Resource.empty |> ObjectInterpreter.toJson |> JsonConvert.SerializeObject) 
+        (Resource.empty |> ObjectInterpreter.Hal.toJson |> JsonConvert.SerializeObject) 
         """{}""" 
         "should return an empty resource"
     testCase "resource" <| fun _ ->
@@ -76,7 +76,7 @@ let ``Json.NET`` =
                                     "total", JObject <| (44M :> obj) ]
       }    
       Expect.equal 
-        (eCommerceResource |> ObjectInterpreter.toJson |> JsonConvert.SerializeObject) 
+        (eCommerceResource |> ObjectInterpreter.Hal.toJson |> JsonConvert.SerializeObject) 
         """{"_embedded":{"http://example.com/rels/billing":{"_links":{"self":{"href":"/billing/135451"}},"address":"1234 Day St.","card_exp_month":"01","card_exp_year":"2015","card_number":"1111","card_type":"mastercard","city":"Los Angeles","country_iso":"US","first_name":"Herman","last_name":"Radtke","state":"CA","zipcode":"90015"},"http://example.com/rels/shipping":{"_links":{"self":{"href":"/shipping/135451"}},"address":"1234 Day St.","city":"Los Angeles","country_iso":"US","first_name":"Heman","last_name":"Radtke","state":"CA","zipcode":"90015"},"http://www.example.com/rels/coupon":{"amount":"10","code":"A0318A97","type":"dollarOff"}},"_links":{"http://example.com/rels/billing":{"href":"/member/109087/billing"},"http://example.com/rels/payment/billing":{"href":"/payment/billing"},"http://example.com/rels/payment/coupon":{"href":"/payment/coupon"},"http://example.com/rels/payment/shipping":{"href":"/payment/shipping"},"http://example.com/rels/shipping":{"href":"/member/109087/shipping"},"self":{"href":"/payment"}},"freight":5.0,"subtotal":49.0,"tax":0.0,"total":44.0}""" 
         "should return resource object corresponding to correct e-commerce example"
     testCase "resource with payload" <| fun _ ->
@@ -85,7 +85,7 @@ let ``Json.NET`` =
             payload = { name = "John"; age = 42 } :> obj |> Some
         }    
       Expect.equal
-        (resource |> ObjectInterpreter.toJson |> JsonConvert.SerializeObject) 
+        (resource |> ObjectInterpreter.Hal.toJson |> JsonConvert.SerializeObject) 
         """{"age":42,"name":"John"}""" 
         "should return an empty resource"
     testCase "resource with embedded with payload" <| fun _ ->
@@ -101,7 +101,7 @@ let ``Json.NET`` =
           embedded = Map.ofList [ "john", Singleton resource ]
       }
       Expect.equal
-        (resourceWithEmbedded |> ObjectInterpreter.toJson |> JsonConvert.SerializeObject) 
+        (resourceWithEmbedded |> ObjectInterpreter.Hal.toJson |> JsonConvert.SerializeObject) 
         """{"_embedded":{"john":{"age":42,"name":"John"}},"age":32,"name":"Jane"}""" 
         "should return an empty resource"                
     testCase "resource with payload and properties" <| fun _ ->
@@ -112,7 +112,7 @@ let ``Json.NET`` =
             payload = { name = "John"; age = 42 } :> obj |> Some
         }    
       Expect.equal
-        (resource |> ObjectInterpreter.toJson |> JsonConvert.SerializeObject) 
+        (resource |> ObjectInterpreter.Hal.toJson |> JsonConvert.SerializeObject) 
         """{"age":42,"foo":"bar","name":"John","total":42.0}""" 
         "should return an empty resource"          
     testCase "resource with invalid payload" <| fun _ ->
@@ -121,7 +121,7 @@ let ``Json.NET`` =
             payload = [1;2;3] :> obj |> Some
         }    
       Expect.equal
-        (resource |> ObjectInterpreter.toJson |> JsonConvert.SerializeObject) 
+        (resource |> ObjectInterpreter.Hal.toJson |> JsonConvert.SerializeObject) 
         """{}""" 
         "should return an empty resource"                
   ]

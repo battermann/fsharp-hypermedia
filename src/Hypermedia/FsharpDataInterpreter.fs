@@ -13,5 +13,11 @@ let rec internal interpret (instance: Hypermedia.Models.AbstractJsonObject<JsonV
     | Hypermedia.Models.JRecord map   -> JsonValue.Record (map |> Map.toArray |> Array.map (fun (k,v) -> k, interpret v))
     | Hypermedia.Models.JArray a      -> JsonValue.Array (a |> List.map interpret |> List.toArray)
 
-/// Serializes a HAL resource as `FSharp.Data.JsonValue`
-let toJson resource = Hal.Resource.toJson interpret resource
+[<RequireQualifiedAccess>]
+module Hal =
+    /// Serializes a HAL resource as `FSharp.Data.JsonValue`
+    let toJson resource = Hal.Resource.toJson interpret resource
+
+[<RequireQualifiedAccess>]
+module Siren =
+    let toJSon entity = SirenSerialization.Entity.toJson interpret entity

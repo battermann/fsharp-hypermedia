@@ -10,5 +10,11 @@ let rec interpret (instance: Hypermedia.Models.AbstractJsonObject<obj>) : obj =
     | Hypermedia.Models.JRecord map   -> map |> Map.map (fun _ v -> interpret v) :> obj
     | Hypermedia.Models.JArray a      -> a |> List.map interpret :> obj
 
-/// Serializes a HAL resource as `obj`
-let toJson resource = Hal.Resource.toJson interpret resource    
+[<RequireQualifiedAccess>]
+module Siren =
+    let toJson entity = SirenSerialization.Entity.toJson interpret entity
+
+[<RequireQualifiedAccess>]
+module Hal =
+    /// Serializes a HAL resource as `obj`
+    let toJson resource = Hal.Resource.toJson interpret resource    

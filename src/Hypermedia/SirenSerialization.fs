@@ -97,7 +97,7 @@ module internal Action =
         fields = Map.empty
     }
 
-    let serialize (action: Action) =
+    let serialize name (action: Action) =
         action.classes |> List.map (fun (Class c) -> JString c) |> toMap CLASS
         |> fun map ->
             match action.httpMethod with Some m -> m | _ -> HttpMethod.GET
@@ -115,6 +115,7 @@ module internal Action =
             |> map.Add
         |> fun map ->
             action.fields |> Map.toList |>  List.map (fun (Name n, f) -> f |> Field.serialize n) |> toMap FIELDS
+        |> fun map -> map.Add(NAME, JString name)
         |> JRecord
 
 [<RequireQualifiedAccess>]
@@ -164,9 +165,10 @@ module internal Entity =
         |> fun map ->
             entity.links |> List.map Link.serialize |> toMap LINKS
         |> fun map ->
-            [ ACTIONS, entity.actions |> Map.toList |> List.map (fun (Name n, v) -> (n, Action.serialize v)) |> Map.ofList |> JRecord] |> Map.ofList
+            entity.actions |> Map.toList |> List.map (fun (Name n, v) -> Action.serialize n v) |> toMap ACTIONS
         |> fun map ->
-            merge [ entity.properties; map ]
+            merge [ entity.properties |> Map.toList |> List.map (fun (Name n, v) -> n,v) |> Map.ofList
+                    map ]
         |> fun map ->
             let embedded = 
                 entity.entities 
