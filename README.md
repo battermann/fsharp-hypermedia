@@ -245,7 +245,7 @@ let entity =
     |> Entity.withClasses [ "order" ]       
     |> Entity.addEmbeddedLink itemsLink
     |> Entity.addEmbeddedEntity customer "http://x.io/rels/customer"
-    |> Entity.withActions [ "add-items", addItemAction ] 
+    |> Entity.withActions [ "add-item", addItemAction ] 
     |> Entity.withLinks [ Link.create (Rel "self") (Href (Uri "http://api.x.io/orders/42"))
                           Link.create (Rel "previous") (Href (Uri "http://api.x.io/orders/41"))
                           Link.create (Rel "next") (Href (Uri "http://api.x.io/orders/43")) ]
