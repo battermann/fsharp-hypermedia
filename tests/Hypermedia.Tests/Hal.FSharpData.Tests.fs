@@ -3,8 +3,8 @@ module Hal.FSharpData.Tests
 open Expecto
 open System
 
+open Hypermedia
 open Hal
-open Hypermedia.Models
 
 let relUri path = Uri(path, UriKind.Relative)
 
