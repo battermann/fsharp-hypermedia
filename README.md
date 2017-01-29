@@ -13,7 +13,7 @@ Define [HAL resource](http://stateless.co/hal_specification.html) or [Siren](htt
 
 ## TOC
 
-* [Using fsharp-hypermedia with Paket]http://github.com/battermann/fsharp-hypermedia#using-fsharp-hypermedia-with-paket)
+* [Using fsharp-hypermedia with Paket](http://github.com/battermann/fsharp-hypermedia#using-fsharp-hypermedia-with-paket)
 * [HAL Example with Newtonsoft.Json](http://github.com/battermann/fsharp-hypermedia#hal-example-with-newtonsoftjson)
 * [Siren Example with FSharp.Data](http://github.com/battermann/fsharp-hypermedia#siren-example-with-fsharpdata)
 
