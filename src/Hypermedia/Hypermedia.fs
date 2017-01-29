@@ -124,8 +124,7 @@ module Hal =
                 curies 
                 |> Map.toList 
                 |> List.map (fun (name, href) -> { create href with name = Some name; templated = Some true })
-                |> Collection
-                |> fun x -> "curies", x
+                |> fun x -> "curies", Collection x
                 |> links.Add
 
             let serializeLinkList = function
@@ -134,9 +133,9 @@ module Hal =
 
             let nonEmptyLinks = 
                 linksWithCuries 
-                |> Map.filter (fun _ l -> 
-                    match l with 
-                    | Singleton _     -> true
+                |> Map.filter (fun _ link -> 
+                    match link with 
+                    | Singleton _   -> true
                     | Collection xs -> not (xs |> List.isEmpty))
 
             if nonEmptyLinks |> Map.isEmpty then
@@ -180,8 +179,6 @@ module Hal =
             | _ -> Map.empty    
 
         let rec internal serialize (resource: Resource<'a>) : JsonModel<'a> =
-            let merge (maps: Map<_,_> seq): Map<_,_> = 
-                List.concat (maps |> Seq.map Map.toList) |> Map.ofList
             
             let withResolvedCuries = Curies.replaceRelations resource.curies resource
                 
