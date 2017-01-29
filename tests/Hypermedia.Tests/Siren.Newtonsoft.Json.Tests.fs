@@ -3,10 +3,9 @@ module Siren.NewtonsoftJson.Tests
 open Expecto
 open System
 
+open Hypermedia
 open Siren
-open SirenSerialization
 open Newtonsoft.Json
-open Hypermedia.Models
 
 [<Tests>]
 let ``Siren`` =

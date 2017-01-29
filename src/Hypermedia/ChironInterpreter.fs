@@ -2,15 +2,16 @@
 module ChironInterpreter
 
 open Chiron
+open Hypermedia
 
 /// Transforms an `AbstractJsonObject<Chiron.Json>` into a `Chiron.Json`.
-let rec interpret (instance: Hypermedia.Models.AbstractJsonObject<Json>) : Json =
+let rec interpret (instance: AbstractJsonObject<Json>) : Json =
     match instance with
-    | Hypermedia.Models.JObject a     -> a
-    | Hypermedia.Models.JBool b       -> Bool b
-    | Hypermedia.Models.JString s     -> String s
-    | Hypermedia.Models.JRecord map   -> Object (map |> Map.map (fun _ v -> interpret v))
-    | Hypermedia.Models.JArray a      -> Array (a |> List.map interpret)
+    | JObject a     -> a
+    | JBool b       -> Bool b
+    | JString s     -> String s
+    | JRecord map   -> Object (map |> Map.map (fun _ v -> interpret v))
+    | JArray a      -> Array (a |> List.map interpret)
 
 [<RequireQualifiedAccess>]
 module Hal =
@@ -19,4 +20,4 @@ module Hal =
 
 [<RequireQualifiedAccess>]
 module Siren =
-    let toJSon entity = SirenSerialization.Entity.toJson interpret entity
+    let toJSon entity = Siren.Entity.toJson interpret entity

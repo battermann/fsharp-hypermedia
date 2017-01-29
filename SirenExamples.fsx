@@ -1,14 +1,9 @@
 #load "paket-files/include-scripts/net40/include.fsharp.data.fsx"
-#load "src/Hypermedia/Shared.fs"
-#load "src/Hypermedia/AbstractJsonObject.fs"
-#load "src/Hypermedia/Siren.fs"
-#load "src/Hypermedia/Hal.fs"
-#load "src/Hypermedia/SirenSerialization.fs"
+#load "src/Hypermedia/Hypermedia.fs"
 #load "src/Hypermedia/FsharpDataInterpreter.fs"
 
 open System
-open Hypermedia.Models
-open SirenSerialization
+open Hypermedia
 open Siren
 open FSharp.Data
 

@@ -3,9 +3,9 @@ module Hal.NewtonsoftJson.Tests
 open Expecto
 open System
 
+open Hypermedia
 open Hal
 open Newtonsoft.Json
-open Hypermedia.Models
 
 let relUri path = Uri(path, UriKind.Relative)
 

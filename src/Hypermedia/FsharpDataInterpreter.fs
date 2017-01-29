@@ -3,15 +3,16 @@
 module FSharpDataIntepreter
 
 open FSharp.Data
+open Hypermedia
 
 /// Transforms an `AbstractJsonObject<FSharp.Data.JsonValue>` into a `FSharp.Data.JsonValue`.
-let rec internal interpret (instance: Hypermedia.Models.AbstractJsonObject<JsonValue>) : JsonValue =
+let rec internal interpret (instance: AbstractJsonObject<JsonValue>) : JsonValue =
     match instance with
-    | Hypermedia.Models.JObject a     -> a
-    | Hypermedia.Models.JBool b       -> JsonValue.Boolean b
-    | Hypermedia.Models.JString s     -> JsonValue.String s
-    | Hypermedia.Models.JRecord map   -> JsonValue.Record (map |> Map.toArray |> Array.map (fun (k,v) -> k, interpret v))
-    | Hypermedia.Models.JArray a      -> JsonValue.Array (a |> List.map interpret |> List.toArray)
+    | JObject a     -> a
+    | JBool b       -> JsonValue.Boolean b
+    | JString s     -> JsonValue.String s
+    | JRecord map   -> JsonValue.Record (map |> Map.toArray |> Array.map (fun (k,v) -> k, interpret v))
+    | JArray a      -> JsonValue.Array (a |> List.map interpret |> List.toArray)
 
 [<RequireQualifiedAccess>]
 module Hal =
@@ -20,4 +21,4 @@ module Hal =
 
 [<RequireQualifiedAccess>]
 module Siren =
-    let toJSon entity = SirenSerialization.Entity.toJson interpret entity
+    let toJSon entity = Siren.Entity.toJson interpret entity

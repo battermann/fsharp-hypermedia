@@ -4,8 +4,8 @@ open Expecto
 open Chiron
 open System
 
+open Hypermedia
 open Hal
-open Hypermedia.Models
 
 let relUri path = Uri(path, UriKind.Relative)
 

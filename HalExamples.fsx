@@ -1,9 +1,9 @@
-#load "src/Hypermedia/Hal.fs"
-#load "src/Hypermedia/ObjectInterpreter.fs"
+#load "src/Hypermedia/Hypermedia.fs"
 #load "paket-files/include-scripts/net40/include.newtonsoft.json.fsx"
 
 open System
 open Newtonsoft.Json
+open Hypermedia
 open Hal
 
 let relUri path = Uri(path, UriKind.Relative)
