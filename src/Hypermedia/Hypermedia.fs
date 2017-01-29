@@ -4,11 +4,11 @@ let merge (maps: Map<_,_> seq): Map<_,_> =
     List.concat (maps |> Seq.map Map.toList) |> Map.ofList
 
 /// Represents a minimal generic Json object to describe a hypermedia resource.
-type AbstractJsonObject<'a> =
+type JsonModel<'a> =
     | JObject of 'a
-    | JRecord of Map<string, AbstractJsonObject<'a>>
+    | JRecord of Map<string, JsonModel<'a>>
     | JString of string
-    | JArray of AbstractJsonObject<'a> list
+    | JArray of JsonModel<'a> list
     | JBool of bool
 
 /// Define Hypertext Application Language (HAL) resources.
@@ -50,7 +50,7 @@ module Hal =
         curies: Curies
         links: Map<string, MaybeSingleton<Link>>
         embedded: Map<string, MaybeSingleton<Resource<'a>>>
-        properties: Map<string, AbstractJsonObject<'a>>
+        properties: Map<string, JsonModel<'a>>
         payload: obj option
     }
 
@@ -106,7 +106,7 @@ module Hal =
             hreflang = None 
         }
 
-        let internal serializeSingleLink (link: Link) : AbstractJsonObject<'a> =
+        let internal serializeSingleLink (link: Link) : JsonModel<'a> =
             Map.ofList
                 [ yield ("href", JString (string link.href))
                   yield! match link.templated with Some b -> [ "templated", JBool b ] | _ -> []
@@ -118,7 +118,7 @@ module Hal =
                   yield! match link.hreflang with Some lang -> [ "hreflang", JString lang ] | _ -> [] ]
                 |> JRecord
 
-        let internal serialize (links: Map<string, MaybeSingleton<Link>>) (curies: Curies) : AbstractJsonObject<'a> option =
+        let internal serialize (links: Map<string, MaybeSingleton<Link>>) (curies: Curies) : JsonModel<'a> option =
 
             let linksWithCuries =
                 curies 
@@ -179,7 +179,7 @@ module Hal =
             with
             | _ -> Map.empty    
 
-        let rec internal serialize (resource: Resource<'a>) : AbstractJsonObject<'a> =
+        let rec internal serialize (resource: Resource<'a>) : JsonModel<'a> =
             let merge (maps: Map<_,_> seq): Map<_,_> = 
                 List.concat (maps |> Seq.map Map.toList) |> Map.ofList
             
@@ -293,7 +293,7 @@ module Siren =
     }
 
     type Entity<'a> = {
-        properties: Map<Name, AbstractJsonObject<'a>>
+        properties: Map<Name, JsonModel<'a>>
         entities: SubEntity<'a> list
         actions: Map<Name, Action>
         links: Link list
@@ -511,11 +511,11 @@ module Siren =
         let toJson interpreter entity =
             entity |> serialize |> interpreter        
             
-/// Contains the interpreter to transform an `AbstractJsonObject<obj>` into an `obj`.
+/// Contains the interpreter to transform an `JsonModel<obj>` into an `obj`.
 module ObjectInterpreter =
 
-    /// Transforms an `AbstractJsonObject<obj>` into an `obj`.
-    let rec interpret (instance: AbstractJsonObject<obj>) : obj =
+    /// Transforms an `JsonModel<obj>` into an `obj`.
+    let rec interpret (instance: JsonModel<obj>) : obj =
         match instance with
         | JObject a     -> a
         | JBool b       -> b :> obj

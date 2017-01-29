@@ -1,11 +1,11 @@
-/// Contains the interpreter to transform an `AbstractJsonObject<Chiron.Json>` into a `Chiron.Json`.
+/// Contains the interpreter to transform an `JsonModel<Chiron.Json>` into a `Chiron.Json`.
 module ChironInterpreter
 
 open Chiron
 open Hypermedia
 
-/// Transforms an `AbstractJsonObject<Chiron.Json>` into a `Chiron.Json`.
-let rec interpret (instance: AbstractJsonObject<Json>) : Json =
+/// Transforms an `JsonModel<Chiron.Json>` into a `Chiron.Json`.
+let rec interpret (instance: JsonModel<Json>) : Json =
     match instance with
     | JObject a     -> a
     | JBool b       -> Bool b
