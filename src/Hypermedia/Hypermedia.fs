@@ -305,11 +305,11 @@ module Siren =
         | EmbeddedRepresentation of Entity<'a> * Rel
         | EmbeddedLink of Link
 
-    let toMap name items =
+    let mkProperty name items =
         if items |> List.isEmpty then
-            Map.empty
+            List.empty
         else
-            Map.ofList [ name, JArray items ]
+            [ name, JArray items ]
 
     [<AutoOpen>]
     module internal Attributes =
@@ -372,18 +372,21 @@ module Siren =
             value = None
             title = None
         }
+
         let internal serialize name (field: Field) =
-            field.classes |> List.map (fun (Class c) -> JString c) |> toMap CLASS
-            |> fun map ->
-                match field.inputType with Some t -> t | _ -> InputType.Text
-                |> InputType.serialize
-                |> fun x -> TYPE, JString x
-                |> map.Add
-            |> fun map -> 
-                match field.value with Some (Value v) -> map.Add(VALUE, JString v) | _ -> map
-            |> fun map ->
-                match field.title with Some (Title t) -> map.Add(TITLE, JString t) | _ -> map
-            |> fun map -> map.Add(NAME, JString name)
+            field.classes |> List.map (fun (Class c) -> JString c) |> mkProperty CLASS
+            |> fun props ->
+                let inputType = 
+                    match field.inputType with Some t -> t | _ -> InputType.Text
+                    |> InputType.serialize
+                    |> fun x -> TYPE, JString x
+                inputType :: props
+            |> fun props -> 
+                match field.value with Some (Value v) -> (VALUE, JString v) :: props | _ -> props
+            |> fun props ->
+                match field.title with Some (Title t) -> (TITLE, JString t) :: props | _ -> props
+            |> fun props -> (NAME, JString name) :: props
+            |> Map.ofList
             |> JRecord
 
 
@@ -400,24 +403,27 @@ module Siren =
         }
 
         let serialize name (action: Action) =
-            action.classes |> List.map (fun (Class c) -> JString c) |> toMap CLASS
-            |> fun map ->
-                match action.httpMethod with Some m -> m | _ -> HttpMethod.GET
-                |> HttpMethod.serialize
-                |> fun x -> METHOD, JString x
-                |> map.Add
-            |> fun map -> 
+            action.classes |> List.map (fun (Class c) -> JString c) |> mkProperty CLASS
+            |> fun props ->
+                let httpMethod =
+                    match action.httpMethod with Some m -> m | _ -> HttpMethod.GET
+                    |> HttpMethod.serialize
+                    |> fun x -> METHOD, JString x
+                httpMethod :: props
+            |> fun props -> 
                 let (Href href) = action.href
-                map.Add(HREF, JString (href.ToString()))
-            |> fun map ->
-                match action.title with Some (Title t) -> map.Add(TITLE, JString t) | _ -> map
-            |> fun map ->
-                match action.mediaType with Some (MediaType mt) -> mt | _ -> "application/x-www-form-urlencoded"
-                |> fun x -> TYPE, JString x
-                |> map.Add
-            |> fun map ->
-                merge [ map; action.fields |> Map.toList |>  List.map (fun (Name n, f) -> f |> Field.serialize n) |> toMap FIELDS ]
-            |> fun map -> map.Add(NAME, JString name)
+                (HREF, JString (href.ToString())) :: props
+            |> fun props ->
+                match action.title with Some (Title t) -> (TITLE, JString t) :: props | _ -> props
+            |> fun props ->
+                let mediaType =
+                    match action.mediaType with Some (MediaType mt) -> mt | _ -> "application/x-www-form-urlencoded"
+                    |> fun x -> TYPE, JString x
+                mediaType :: props
+            |> fun props ->
+                List.concat [ props; action.fields |> Map.toList |>  List.map (fun (Name n, f) -> f |> Field.serialize n) |> mkProperty FIELDS ]
+            |> fun props -> (NAME, JString name) :: props
+            |> Map.ofList
             |> JRecord
 
     [<RequireQualifiedAccess>]
@@ -433,16 +439,17 @@ module Siren =
         }
 
         let internal serialize (link: Link) =
-            link.classes |> List.map (fun (Class c) -> JString c) |> toMap CLASS
-            |> fun map -> 
+            link.classes |> List.map (fun (Class c) -> JString c) |> mkProperty CLASS
+            |> fun props -> 
                 let (Href href) = link.href
-                map.Add(HREF, JString (href.ToString()))
-            |> fun map ->
-                match link.title with Some (Title t) -> map.Add(TITLE, JString t) | _ -> map
-            |> fun map ->
-                match link.mediaType with Some (MediaType mt) -> map.Add(TYPE, JString mt) | _ -> map
-            |> fun map ->
-                merge [ map; fst link.rel :: snd link.rel |> List.map (fun (Rel rel) -> JString rel) |> toMap REL ]
+                (HREF, JString (href.ToString())) :: props
+            |> fun props ->
+                match link.title with Some (Title t) -> (TITLE, JString t) :: props | _ -> props
+            |> fun props ->
+                match link.mediaType with Some (MediaType mt) -> (TYPE, JString mt) :: props | _ -> props
+            |> fun props ->
+                List.concat [ props; fst link.rel :: snd link.rel |> List.map (fun (Rel rel) -> JString rel) |> mkProperty REL ]
+            |> Map.ofList
             |> JRecord
 
         let withClasses classes link : Link =
@@ -462,30 +469,31 @@ module Siren =
         }
 
         let rec serializeRec (rel: Rel option) (entity: Entity<'a>) =
-            entity.classes |> List.map (fun (Class c) -> JString c) |> toMap CLASS
-            |> fun map ->
-                match entity.title with Some (Title t) -> map.Add(TITLE, JString t) | _ -> map
-            |> fun map ->
-                match rel with Some (Rel r) -> map.Add(REL, JArray [ JString r ]) | _ -> map            
-            |> fun map ->
-                merge [ map; entity.links |> List.map Link.serialize |> toMap LINKS ]
-            |> fun map ->
-                merge [ map; entity.actions |> Map.toList |> List.map (fun (Name n, v) -> Action.serialize n v) |> toMap ACTIONS ]
-            |> fun map ->
+            entity.classes |> List.map (fun (Class c) -> JString c) |> mkProperty CLASS
+            |> fun props ->
+                match entity.title with Some (Title t) -> (TITLE, JString t) :: props | _ -> props
+            |> fun props ->
+                match rel with Some (Rel r) -> (REL, JArray [ JString r ]) :: props | _ -> props
+            |> fun props ->
                 if entity.properties |> (not << Map.isEmpty) then   
-                    (PROPERTIES, entity.properties |> Map.toList |> List.map (fun (Name n, v) -> n,v) |> Map.ofList |> JRecord)
-                    |> map.Add
+                    let properties = (PROPERTIES, entity.properties |> Map.toList |> List.map (fun (Name n, v) -> n,v) |> Map.ofList |> JRecord)
+                    properties :: props
                 else
-                    map
-            |> fun map ->
+                    props
+            |> fun props ->
                 let embedded = 
                     entity.entities 
                     |> List.map 
                         (function
                         | EmbeddedRepresentation (e,r) -> serializeRec (Some r) e
                         | EmbeddedLink link            -> link |> Link.serialize)
-                    |> toMap ENTITIES
-                merge [ embedded; map ]
+                    |> mkProperty ENTITIES
+                [ embedded; props ]
+            |> fun propss ->
+                (entity.links |> List.map Link.serialize |> mkProperty LINKS) :: propss
+            |> fun propss ->
+                List.concat ((entity.actions |> Map.toList |> List.map (fun (Name n, v) -> Action.serialize n v) |> mkProperty ACTIONS) :: propss)
+            |> Map.ofList
             |> JRecord
         
         let withClasses classes entity : Entity<_> =
