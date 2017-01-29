@@ -13,8 +13,31 @@ Define [HAL resource](http://stateless.co/hal_specification.html) or [Siren](htt
 
 ## TOC
 
-* [HAL Example with Newtonsoft.Json](https://github.com/battermann/fsharp-hypermedia#hal-example-with-newtonsoftjson)
-* [Siren Example with FSharp.Data](https://github.com/battermann/fsharp-hypermedia#siren-example-with-fsharpdata)
+* [Using fsharp-hypermedia with Paket](http://github.com/battermann/fsharp-hypermedia#using-fsharp-hyperedia-with-paket)
+* [HAL Example with Newtonsoft.Json](http://github.com/battermann/fsharp-hypermedia#hal-example-with-newtonsoftjson)
+* [Siren Example with FSharp.Data](http://github.com/battermann/fsharp-hypermedia#siren-example-with-fsharpdata)
+
+## Using fsharp-hypermedia with Paket
+
+It is convienient to get fsharp-hypermedia with Paket GitHub dependencies. To do so, just add following line to your `paket.dependencies` file:
+
+    github battermann/fsharp-hypermedia src/Hypermedia/Hypermedia.fs
+
+and the following line to your `paket.references` file for the desired project:
+
+    File:Hypermedia.fs .
+    
+This includes the object intepreter, needed to use the Newtonsoft.Json serializer.
+
+The FSharp.Data.JsonValue or the Chiron interpreter have to be referenced explicitly. For example like this:
+
+    github battermann/fsharp-hypermedia /src/Hypermedia/FsharpDataInterpreter.fs
+    
+and in the `paket.references` file for the desired project accordingly:
+
+    File:FsharpDataInterpreter.fs .
+ 
+In `.fsx` scripts the dependent libraries have to be loaded before.
 
 ## HAL Example with Newtonsoft.Json
 
