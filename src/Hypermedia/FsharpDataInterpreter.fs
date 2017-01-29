@@ -1,12 +1,12 @@
 
-/// Contains the interpreter to transform an `AbstractJsonObject<FSharp.Data.JsonValue>` into a `FSharp.Data.JsonValue`.
+/// Contains the interpreter to transform an `JsonModel<FSharp.Data.JsonValue>` into a `FSharp.Data.JsonValue`.
 module FSharpDataIntepreter
 
 open FSharp.Data
 open Hypermedia
 
-/// Transforms an `AbstractJsonObject<FSharp.Data.JsonValue>` into a `FSharp.Data.JsonValue`.
-let rec internal interpret (instance: AbstractJsonObject<JsonValue>) : JsonValue =
+/// Transforms an `JsonModel<FSharp.Data.JsonValue>` into a `FSharp.Data.JsonValue`.
+let rec internal interpret (instance: JsonModel<JsonValue>) : JsonValue =
     match instance with
     | JObject a     -> a
     | JBool b       -> JsonValue.Boolean b
