@@ -10,6 +10,8 @@ Define [HAL resource](http://stateless.co/hal_specification.html) or [Siren](htt
 * Mediatypes
   * `application/hal+json` ([spec](http://stateless.co/hal_specification.html))
   * `application/vnd.siren+json` ([spec](https://github.com/kevinswiber/siren))
+* Framework agnostic
+* Mostly single file module - easy to use with Paket
 
 ## TOC
 
