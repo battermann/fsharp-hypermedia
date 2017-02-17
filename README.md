@@ -43,7 +43,7 @@ In `.fsx` scripts the dependent libraries have to be loaded before.
 
 ## HAL Example with Newtonsoft.Json
 
-[Complete source script](https://github.com/battermann/halsharp/blob/master/Script.fsx)
+[Complete source script](http://github.com/battermann/fsharp-hypermedia/blob/master/HalExamples.fsx)
 
 Create instances of the response body models:
 
